@@ -1,0 +1,21 @@
+name: Sync to Gitee
+
+on:
+  push:
+    branches:
+      - main  # 触发分支，如果你的主分支叫 master 请修改
+
+jobs:
+  repo-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mirror the GitHub repo to Gitee
+        uses: Yikun/hub-mirror-action@master
+        with:
+          src: github/NoireCase
+          dst: gitee/NoireCase
+          dst_key: ${{ secrets.GITEE_PRIVATE_KEY }}
+          dst_token: ${{ secrets.GITEE_TOKEN }}
+          static_list: "CleverGrid"
+          force_update: true
+          debug: true
