@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="icon" href="data:;base64,=">
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+    <title>妙探寻凶 - 探案集</title>
+    <style>
+        :root {
+            --bg-paper: #fdfbf7;
+            --ink-color: #2c3e50;
+            --border-color: #333;
+            --grid-line: #999;
+            --card-bg: #fff;
+            --accent-red: #c0392b;
+            --accent-green: #27ae60;
+        }
+        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+            
+            /* --- 修改点：记事本背景纹理 --- */
+            background-color: var(--bg-paper);
+            background-image: 
+                linear-gradient(#e1e8ed 1px, transparent 1px), /* 淡淡的横线 */
+                linear-gradient(90deg, #e1e8ed 1px, transparent 1px); /* 淡淡的竖线(网格) */
+            background-size: 20px 20px; /* 格子大小 */
+            /* --------------------------- */
+            
+            color: var(--ink-color);
+            margin: 0;
+            padding: 10px 15px 50px;
+            line-height: 1.6;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        
+        /* 导航栏 */
+        .nav-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #eee; padding: 10px; border-radius: 8px; margin-bottom: 20px; border: 2px solid var(--ink-color);
+        }
+        .nav-btn { background: var(--ink-color); color: #fff; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; opacity: 1; transition: opacity 0.3s; }
+        .nav-btn:disabled { background: #999; cursor: not-allowed; opacity: 0.6; }
+        .case-title { font-weight: 900; font-size: 1.1rem; text-transform: uppercase; }
+
+        /* --- 标题区域 (包含智能开关) --- */
+        header {
+            border-bottom: 3px solid var(--ink-color); margin-bottom: 20px; padding-bottom: 10px;
+            display: flex; align-items: center; justify-content: space-between; /* 两端对齐 */
+            flex-wrap: wrap; gap: 10px;
+        }
+        .header-left { display: flex; align-items: center; gap: 10px; }
+        
+        h1 { margin: 0; font-size: 1.4rem; font-weight: 900; }
+        #diff-tag {
+            font-size: 0.75rem; border: 1px solid var(--ink-color); padding: 2px 8px;
+            border-radius: 12px; background-color: rgba(0,0,0,0.05); font-weight: bold;
+            color: #555; white-space: nowrap; transform: translateY(2px); 
+        }
+
+        /* --- 智能模式开关样式 --- */
+        .smart-mode-control {
+            display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: bold;
+        }
+        
+        /* 问号提示图标 */
+        .tooltip-icon {
+            display: inline-block; width: 18px; height: 18px; line-height: 18px;
+            background: #999; color: #fff; border-radius: 50%; text-align: center;
+            font-size: 12px; cursor: help; position: relative;
+        }
+        
+        /* 提示文字气泡 */
+        .tooltip-icon .tooltip-text {
+            visibility: hidden; width: 250px; background-color: #333; color: #fff;
+            text-align: left; border-radius: 6px; padding: 10px; position: absolute;
+            z-index: 10; top: 120%; right: 0; font-size: 0.8rem; font-weight: normal;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); opacity: 0; transition: opacity 0.3s;
+            line-height: 1.4;
+        }
+        .tooltip-icon:hover .tooltip-text { visibility: visible; opacity: 1; }
+        
+        /* 滑块开关 (Toggle Switch) */
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #c0392b; /* 初始红色 */
+            transition: .4s; border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 18px; width: 18px;
+            left: 3px; bottom: 3px; background-color: white;
+            transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #27ae60; /* 激活绿色 */ }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+
+        /* 简介 */
+        .intro-box { background: #fff; padding: 15px; border-radius: 6px; margin-bottom: 30px; font-size: 0.95rem; border: 1px solid #ccc; color: #444; box-shadow: 2px 2px 0 rgba(0,0,0,0.05); }
+        .section-label { font-weight: bold; font-size: 1.1rem; border-bottom: 2px solid var(--ink-color); margin: 30px 0 15px; padding-bottom: 5px; }
+        
+        /* 侦探笔记头部 */
+        .notes-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid var(--ink-color); margin: 0 0 10px 0; padding-bottom: 5px;
+        }
+        .notes-title { font-weight: bold; font-size: 1.1rem; }
+        .btn-reset-board {
+            font-size: 0.8rem; padding: 4px 12px; border: 1px solid var(--ink-color);
+            background: #fff; color: #555; border-radius: 15px; cursor: pointer;
+            transition: background 0.2s; display: flex; align-items: center; gap: 4px;
+        }
+        .btn-reset-board:hover { background: #eee; color: #000; }
+        
+        /* 卡片 */
+        .cards-list { display: flex; flex-direction: column; gap: 15px; }
+        .suspect-card { border: 2px solid var(--border-color); border-radius: 12px; padding: 12px; background: var(--card-bg); display: flex; align-items: center; gap: 15px; }
+        .sus-icon-box { display: flex; flex-direction: column; align-items: center; min-width: 80px; }
+        .sus-icon { font-size: 3rem; filter: grayscale(100%); line-height: 1; }
+        .sus-name-short { font-size: 0.7rem; font-weight: bold; margin-top: 5px; text-align: center; }
+        .sus-info { flex: 1; }
+        .sus-desc { font-size: 0.9rem; margin-bottom: 8px; }
+        .sus-traits { font-size: 0.8rem; font-weight: 800; color: #000; }
+        
+        .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 10px; }
+        .item-card { border: 2px solid var(--border-color); border-radius: 10px; padding: 10px 5px; background: var(--card-bg); text-align: center; display: flex; flex-direction: column; align-items: center; }
+        .item-icon { font-size: 2.2rem; filter: grayscale(100%); margin-bottom: 5px; }
+        .item-name { font-weight: bold; font-size: 0.9rem; margin-bottom: 2px; line-height: 1.2;}
+        .item-tag { font-size: 0.7rem; color: #666; margin-bottom: 5px; font-weight: bold;}
+        .item-desc { font-size: 0.75rem; color: #444; line-height: 1.3; text-align: center; width: 100%; padding: 0 4px;}
+        
+        .clues-box { background: #fff; border: 2px dashed var(--border-color); padding: 20px; border-radius: 6px; margin: 30px 0; }
+        .clue-item { margin-bottom: 8px; padding-left: 15px; position: relative; font-size: 0.95rem; }
+        .clue-item::before { content: '•'; position: absolute; left: 0; font-weight: bold; }
+        
+        /* 布局 */
+        .bottom-layout { display: flex; flex-direction: column; gap: 30px; margin-top: 30px; }
+        @media (min-width: 900px) {
+            .bottom-layout { flex-direction: row; align-items: flex-start; justify-content: space-between; }
+            .grid-area { flex: 0 0 auto; }
+            .solution-area { flex: 1; min-width: 300px; max-width: 350px; position: sticky; top: 20px; }
+        }
+        
+        .grid-wrapper { margin: 10px 0 0 0; overflow-x: auto; display: flex; justify-content: flex-start; padding-bottom: 10px; }
+        .grid-table { border-collapse: collapse; background: #fff; border: 3px solid var(--ink-color); }
+        .grid-table td, .grid-table th { border: 1px solid var(--grid-line); width: 42px; height: 42px; text-align: center; padding: 0; }
+        .grid-table th { background: #eee; font-size: 1.4rem; vertical-align: middle; }
+        .th-icon { filter: grayscale(100%); }
+        .border-right-thick { border-right: 3px solid var(--ink-color) !important; }
+        .border-bottom-thick { border-bottom: 3px solid var(--ink-color) !important; }
+        .empty-zone { background: var(--bg-paper); border: none !important; }
+        .cell { 
+            cursor: pointer; 
+            /* --- 修改点：应用手写字体，并加大字号 --- */
+            font-family: 'Patrick Hand', cursive; 
+            font-size: 1.8rem; /* 字号加大，因为手写体通常偏小 */
+            /* ------------------------------------- */
+            padding-top: 5px; /* 微调垂直位置 */
+        }
+        .cell.cross { color: var(--accent-red); background: rgba(192, 57, 43, 0.05); }
+        .cell.check { color: var(--accent-green); background: rgba(39, 174, 96, 0.05); }
+        .cell.cross::after { content: '✖'; }
+        .cell.check::after { content: '✔'; }
+        
+        .solution-box { border: 2px solid var(--ink-color); border-radius: 12px; padding: 20px; background: #fff; }
+        .sol-row { display: flex; align-items: center; border-bottom: 1px solid #ccc; padding: 10px 0; margin-bottom: 10px; }
+        .sol-label { font-weight: bold; margin-right: 10px; min-width: 90px; }
+        select { flex: 1; border: none; font-size: 1rem; background: transparent; color: var(--ink-color); outline: none;}
+        .btn-submit { width: 100%; background: var(--ink-color); color: #fff; padding: 15px; border: none; border-radius: 6px; font-size: 1.1rem; font-weight: bold; margin-top: 10px; cursor: pointer; }
+        
+        #modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); z-index: 200; }
+        #modal-box { display: none; position: fixed; top:50%; left:50%; transform: translate(-50%, -50%); background: #fff; padding: 25px; width: 85%; max-width: 350px; border-radius: 8px; text-align: center; border: 3px solid var(--ink-color); z-index: 201; }
+        #modal-btn { background: var(--ink-color); color: #fff; border: none; padding: 8px 30px; margin-top: 15px; cursor: pointer; border-radius: 4px; font-weight: bold; font-size: 1rem;}
+    
+        /* --- 十字光标高亮样式 --- */
+        .highlight-guide {
+            /* 使用淡淡的墨水色作为高亮，适应纸张风格 */
+            background-color: rgba(44, 62, 80, 0.1) !important;
+            transition: background-color 0s; /* 响应要快，去掉过渡 */
+        }
+
+        /* --- 优化：可划掉的线索 --- */
+        .clue-item { 
+            cursor: pointer; 
+            transition: all 0.2s;
+            /* 增加一点点击区域，防误触 */
+            padding: 4px 0 4px 20px; 
+        }
+        .clue-item:hover {
+            color: var(--ink-color);
+            background-color: rgba(0,0,0,0.03);
+        }
+        /* 被划掉的状态 */
+        .clue-item.done {
+            text-decoration: line-through;
+            color: #999;
+            opacity: 0.6;
+        }
+        /* 增加手写体感觉的符号 (可选，如果以后想加字体的话) */
+        .cell { font-family: "Comic Sans MS", "Chalkboard SE", sans-serif; }
+
+        /* --- 提示小字样式 --- */
+        .hint-text {
+            font-size: 0.8rem;
+            color: #999; /* 浅灰色，不抢眼 */
+            font-weight: normal; /* 取消加粗 */
+            margin-left: 10px; /* 稍微拉开点距离 */
+            font-family: sans-serif; /* 用回无衬线字体，清晰易读 */
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <nav class="nav-bar">
+        <button class="nav-btn" id="btn-prev" onclick="game.changeLevel(-1)">◀ 上一案</button>
+        <span class="case-title" id="level-display">CASE 1</span>
+        <button class="nav-btn" id="btn-next" onclick="game.changeLevel(1)">下一案 ▶</button>
+    </nav>
+    <header>
+        <div class="header-left">
+            <h1 id="title-text">加载中...</h1>
+            <span id="diff-tag"></span>
+        </div>
+        
+        <!-- 智能辅助开关 -->
+        <div class="smart-mode-control">
+            <span>智能模式</span>
+            <span class="tooltip-icon">?
+                <span class="tooltip-text">功能描述：增加一个“自动填充”开关。当玩家在一个格子里打勾（✔）时，程序自动把该行、该列的其他格子打叉（✖）。</span>
+            </span>
+            <label class="switch">
+                <input type="checkbox" id="smart-toggle" onchange="game.toggleSmartMode()">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </header>
+    <div class="intro-box" id="intro-text"></div>
+    <div class="section-label">嫌疑人：</div>
+    <div class="cards-list" id="suspects-container"></div>
+    <div class="section-label">地点：</div>
+    <div class="grid-cards" id="locations-container"></div>
+    <div class="section-label">凶器：</div>
+    <div class="grid-cards" id="weapons-container"></div>
+    <div class="section-label">
+        线索与证据：<span class="hint-text">(点击文字可划掉)</span>
+    </div>
+    <div class="clues-box" id="clues-container"></div>
+    <div class="bottom-layout">
+        <div class="grid-area">
+            <div class="notes-header">
+                <span class="notes-title">侦探笔记：</span>
+                <button class="btn-reset-board" onclick="game.reset()">🔄 重置棋盘</button>
+            </div>
+            <div class="grid-wrapper" id="grid-main"></div>
+        </div>
+        <div class="solution-area">
+            <div class="section-label" style="margin-top:0;">结案陈词：</div>
+            <div class="solution-box">
+                <div class="sol-row"><span class="sol-label">凶手是谁？</span><select id="ans-suspect"></select></div>
+                <div class="sol-row"><span class="sol-label">凶器是什么？</span><select id="ans-weapon"></select></div>
+                <div class="sol-row"><span class="sol-label">在哪儿？</span><select id="ans-location"></select></div>
+                <button class="btn-submit" onclick="game.submit()">结案提交</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-overlay"></div>
+<div id="modal-box">
+    <h3 id="modal-title" style="margin-top:0;"></h3>
+    <p id="modal-msg"></p>
+    <button id="modal-btn" onclick="game.onModalClose()">关闭</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<!-- 引入数据文件 -->
+<script src="data.js"></script>
+
+<script>
+const game = {
+    currentLevelIdx: 0,
+    allStates: {},
+    solvedStatus: [],
+    pendingNextLevel: false,
+    isSmartMode: false, // 智能模式状态
+
+    init() {
+        if (typeof GAME_DATA === 'undefined') {
+            alert('错误：无法加载 data.js，请检查文件路径。');
+            return;
+        }
+        
+        // 1. 尝试从 LocalStorage 读取数据
+        this.loadData();
+
+        // 2. 初始化UI状态
+        document.getElementById('smart-toggle').checked = this.isSmartMode;
+
+        this.loadLevel(this.currentLevelIdx);
+    },
+
+    // 核心：保存数据到本地
+    saveData() {
+        const saveData = {
+            currentLevelIdx: this.currentLevelIdx,
+            allStates: this.allStates,
+            solvedStatus: this.solvedStatus,
+            isSmartMode: this.isSmartMode
+        };
+        localStorage.setItem('murdle_save_v1', JSON.stringify(saveData));
+    },
+
+    // 核心：从本地读取数据
+    loadData() {
+        const raw = localStorage.getItem('murdle_save_v1');
+        if (raw) {
+            try {
+                const data = JSON.parse(raw);
+                // 恢复数据
+                this.currentLevelIdx = data.currentLevelIdx || 0;
+                this.allStates = data.allStates || {};
+                this.solvedStatus = data.solvedStatus || new Array(GAME_DATA.length).fill(false);
+                this.isSmartMode = data.isSmartMode || false;
+            } catch (e) {
+                console.error("读取存档失败", e);
+                // 失败则初始化默认
+                this.solvedStatus = new Array(GAME_DATA.length).fill(false);
+            }
+        } else {
+            this.solvedStatus = new Array(GAME_DATA.length).fill(false);
+        }
+    },
+
+    toggleSmartMode() {
+        this.isSmartMode = document.getElementById('smart-toggle').checked;
+        this.saveData(); // 记住用户的选择
+    },
+
+    loadLevel(idx) {
+        if (idx < 0 || idx >= GAME_DATA.length) return;
+        
+        // 每次切关保存一下当前进度
+        this.saveData();
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        this.currentLevelIdx = idx;
+        const data = GAME_DATA[idx];
+        
+        document.getElementById('title-text').innerText = `${idx + 1}. ${data.title}`;
+        document.getElementById('diff-tag').innerText = data.difficulty;
+        document.getElementById('intro-text').innerText = data.intro;
+        document.getElementById('level-display').innerText = `CASE ${idx + 1}`;
+        
+        this.renderCards('suspects-container', data.suspects, 'sus');
+        this.renderCards('locations-container', data.locations, 'item');
+        this.renderCards('weapons-container', data.weapons, 'item');
+        // 渲染线索（增加了点击划掉功能）
+        document.getElementById('clues-container').innerHTML = data.clues.map(c => 
+            `<div class="clue-item" onclick="this.classList.toggle('done')">${c}</div>`
+        ).join('');
+        
+        this.renderGrid(data);
+        this.fillSelects(data);
+        
+        const btnNext = document.getElementById('btn-next');
+        const btnPrev = document.getElementById('btn-prev');
+        btnPrev.disabled = (idx === 0);
+
+        const isLastLevel = (idx === GAME_DATA.length - 1);
+        const isCurrentSolved = this.solvedStatus[idx];
+
+        if (isLastLevel) {
+            btnNext.disabled = true;
+            btnNext.innerText = "已完结";
+            btnNext.style.opacity = "0.6";
+        } else if (!isCurrentSolved) {
+            btnNext.disabled = true;
+            btnNext.innerText = "🔒 待解锁";
+            btnNext.title = "请先成功侦破当前案件";
+        } else {
+            btnNext.disabled = false;
+            btnNext.innerText = "下一案 ▶";
+            btnNext.title = "";
+        }
+
+        if (!this.allStates[idx]) this.allStates[idx] = {};
+        this.updateView();
+    },
+
+    changeLevel(offset) { this.loadLevel(this.currentLevelIdx + offset); },
+
+    renderCards(containerId, list, type) {
+        const el = document.getElementById(containerId);
+        if (type === 'sus') {
+            el.innerHTML = list.map(s => `
+                <div class="suspect-card">
+                    <div class="sus-icon-box"><div class="sus-icon">${s.icon}</div><div class="sus-name-short">${s.name}</div></div>
+                    <div class="sus-info"><div class="sus-desc">${s.desc}</div><div class="sus-traits">${s.traits}</div></div>
+                </div>`).join('');
+        } else {
+            el.innerHTML = list.map(item => `
+                <div class="item-card">
+                    <div class="item-icon">${item.icon}</div><div class="item-name">${item.name}</div>
+                    <div class="item-tag">${item.tag}</div><div class="item-desc">${item.desc}</div>
+                </div>`).join('');
+        }
+    },
+    
+    renderGrid(data) {
+        const div = document.getElementById('grid-main');
+        let html = `<table class="grid-table"><thead><tr><th style="background:#fff; border:none;"></th>`;
+        data.suspects.forEach((s, i) => { const cls = (i === data.suspects.length - 1) ? 'border-right-thick' : ''; html += `<th class="th-icon ${cls}">${s.icon}</th>`; });
+        data.locations.forEach(l => { html += `<th class="th-icon">${l.icon}</th>`; });
+        html += `</tr></thead><tbody>`;
+        
+        data.weapons.forEach((w, wIdx) => {
+            const rowCls = (wIdx === data.weapons.length - 1) ? 'border-bottom-thick' : '';
+            html += `<tr class="${rowCls}"><th class="th-icon" style="background:#eee; border-right:1px solid #999;">${w.icon}</th>`;
+            data.suspects.forEach((s, sIdx) => { const bCls = (sIdx === data.suspects.length - 1) ? 'border-right-thick' : ''; const key = `${s.id}-${w.id}`; html += `<td class="cell ${bCls}" id="c-${key}" onclick="game.toggle('${key}')"></td>`; });
+            data.locations.forEach(l => { const key = `${w.id}-${l.id}`; html += `<td class="cell" id="c-${key}" onclick="game.toggle('${key}')"></td>`; });
+            html += `</tr>`;
+        });
+        
+        data.locations.forEach((lRow, lIdx) => {
+            html += `<tr><th class="th-icon" style="background:#eee; border-right:1px solid #999;">${lRow.icon}</th>`;
+            data.suspects.forEach((s, sIdx) => { const bCls = (sIdx === data.suspects.length - 1) ? 'border-right-thick' : ''; const key = `${s.id}-${lRow.id}`; html += `<td class="cell ${bCls}" id="c-${key}" onclick="game.toggle('${key}')"></td>`; });
+            html += `<td class="empty-zone" colspan="${data.locations.length}"></td></tr>`;
+        });
+        html += `</tbody></table>`;
+        div.innerHTML = html;
+        
+        // 添加十字光标高亮监听
+        const table = div.querySelector('.grid-table');
+        
+        // 鼠标移入监听
+        table.addEventListener('mouseover', (e) => {
+            // 只有碰到交互格子才触发
+            const cell = e.target.closest('td.cell');
+            if (!cell) return;
+
+            const row = cell.parentElement;
+            const colIndex = cell.cellIndex; // 获取当前列索引
+
+            // 1. 高亮整行 (给当前行的所有子元素加类)
+            Array.from(row.children).forEach(child => child.classList.add('highlight-guide'));
+
+            // 2. 高亮整列 (遍历所有行，找到对应列索引的元素加类)
+            Array.from(table.rows).forEach(tr => {
+                const target = tr.children[colIndex];
+                if (target) target.classList.add('highlight-guide');
+            });
+        });
+
+        // 鼠标移出监听
+        table.addEventListener('mouseout', () => {
+            // 移除所有高亮类
+            const highlighted = table.querySelectorAll('.highlight-guide');
+            highlighted.forEach(el => el.classList.remove('highlight-guide'));
+        });
+
+    },
+    
+    // --- 修改后的点击逻辑：优先打勾 ---
+    toggle(key) {
+        const state = this.allStates[this.currentLevelIdx];
+        const val = state[key] || 0;
+        
+        // 逻辑变更：0(空) -> 2(✔) -> 1(✖) -> 0(空)
+        let nextVal;
+        if (val === 0) {
+            nextVal = 2; // 第一下直接变 勾
+        } else if (val === 2) {
+            nextVal = 1; // 第二下变 叉
+        } else {
+            nextVal = 0; // 第三下变 空
+        }
+        
+        state[key] = nextVal;
+
+        // --- 智能辅助逻辑 ---
+        // 这里的逻辑不用变：只要变成了勾(2)，就触发自动排他
+        if (this.isSmartMode && nextVal === 2) { 
+            this.applySmartLogic(key);
+        }
+
+        this.updateView();
+        this.saveData(); 
+    },
+
+    // 智能填充算法：找出同行同列并打叉
+    applySmartLogic(key) {
+        const parts = key.split('-');
+        const id1 = parts[0];
+        const id2 = parts[1];
+        const data = GAME_DATA[this.currentLevelIdx];
+        const state = this.allStates[this.currentLevelIdx];
+
+        // 辅助函数：给指定key打叉（如果它不是勾的话）
+        const crossOut = (k) => {
+            if (state[k] !== 2) state[k] = 1; 
+        };
+
+        // 我们需要判断 id1 和 id2 属于哪一类 (Suspect, Weapon, Location)
+        // 简单的判断方法：遍历数据源的ID
+        const isIdIn = (id, list) => list.some(item => item.id === id);
+
+        let type = ''; // 'SW', 'WL', 'SL'
+        
+        if (isIdIn(id1, data.suspects)) {
+            if (isIdIn(id2, data.weapons)) type = 'SW'; // 嫌疑人-凶器
+            else if (isIdIn(id2, data.locations)) type = 'SL'; // 嫌疑人-地点
+        } else if (isIdIn(id1, data.weapons)) {
+            if (isIdIn(id2, data.locations)) type = 'WL'; // 凶器-地点
+        }
+
+        // 根据类型执行行列排除
+        if (type === 'SW') {
+            // 同行(S)其他W打叉
+            data.weapons.forEach(w => { if(w.id !== id2) crossOut(`${id1}-${w.id}`); });
+            // 同列(W)其他S打叉
+            data.suspects.forEach(s => { if(s.id !== id1) crossOut(`${s.id}-${id2}`); });
+        } else if (type === 'SL') {
+            // 同行(S)其他L打叉
+            data.locations.forEach(l => { if(l.id !== id2) crossOut(`${id1}-${l.id}`); });
+            // 同列(L)其他S打叉
+            data.suspects.forEach(s => { if(s.id !== id1) crossOut(`${s.id}-${id2}`); });
+        } else if (type === 'WL') {
+            // 同行(W)其他L打叉
+            data.locations.forEach(l => { if(l.id !== id2) crossOut(`${id1}-${l.id}`); });
+            // 同列(L)其他W打叉
+            data.weapons.forEach(w => { if(w.id !== id1) crossOut(`${w.id}-${id2}`); });
+        }
+    },
+
+    updateView() {
+        const state = this.allStates[this.currentLevelIdx];
+        document.querySelectorAll('.cell').forEach(el => {
+            const key = el.id.replace('c-', '');
+            const val = state[key] || 0;
+            el.className = el.className.replace(/ cross| check/g, '');
+            if (val === 1) el.classList.add('cross');
+            if (val === 2) el.classList.add('check');
+        });
+    },
+    fillSelects(data) {
+        const fill = (id, list) => {
+            const sel = document.getElementById(id);
+            sel.innerHTML = '<option value="">...</option>';
+            list.forEach(i => { const opt = document.createElement('option'); opt.value = i.id; opt.innerText = i.name; sel.appendChild(opt); });
+        };
+        fill('ans-suspect', data.suspects); fill('ans-weapon', data.weapons); fill('ans-location', data.locations);
+    },
+    
+    // --- 支持加密答案的提交逻辑 ---
+    submit() {
+        const data = GAME_DATA[this.currentLevelIdx];
+        const state = this.allStates[this.currentLevelIdx] || {};
+
+        const s = document.getElementById('ans-suspect').value;
+        const w = document.getElementById('ans-weapon').value;
+        const l = document.getElementById('ans-location').value;
+
+        if(!s || !w || !l) return showModal('提示', '请填完所有选项', false);
+
+        // 1. 一致性检查 (保持不变)
+        const key1 = `${s}-${w}`;
+        const key2 = `${w}-${l}`;
+        const key3 = `${s}-${l}`;
+        const isChecked = (k) => (state[k] === 2);
+
+        if (!isChecked(key1) || !isChecked(key2) || !isChecked(key3)) {
+            return showModal('📝 证据不足', '你的“侦探笔记”还撑不起这份“结案陈词”。\n\n优秀的推论需要确凿的证据支撑。请回到笔记表格，将你选定的线索一一勾选对齐。\n\n我们需要的是无懈可击的证据链，而不仅仅是一个直觉。', false);
+        }
+
+        // 2. 真相检查 (支持 加密字符串 和 明文对象 两种格式)
+        let isAnswerCorrect = false;
+
+        // 生成玩家答案的指纹：格式为 "凶手ID-凶器ID-地点ID" 的 Base64 编码
+        // 例如：A-CANDLE-BATH  =>  QS1DQU5ETEUtQkFUSA==
+        const playerHash = btoa(`${s}-${w}-${l}`);
+
+        if (typeof data.solution === 'string') {
+            // 情况A：如果 data.js 里存的是加密字符串，直接比对字符串
+            isAnswerCorrect = (data.solution === playerHash);
+        } else {
+            // 情况B：如果 data.js 里存的是旧版对象，按旧逻辑比对 (方便你自己测试)
+            isAnswerCorrect = (s === data.solution.s && w === data.solution.w && l === data.solution.l);
+        }
+
+        if (isAnswerCorrect) {
+            this.solvedStatus[this.currentLevelIdx] = true;
+            this.saveData();
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#c0392b', '#27ae60', '#f1c40f', '#2980b9'] });
+
+            const hasNext = (this.currentLevelIdx < GAME_DATA.length - 1);
+            this.pendingNextLevel = hasNext; 
+
+            if (hasNext) {
+                showModal('🎉 破案成功', '逻辑完美！点击按钮进入下一案。', true, '下一案 ▶');
+            } else {
+                showModal('🏆 通关', '恭喜！你已侦破所有案件！', false, '太棒了');
+            }
+        } else {
+            this.pendingNextLevel = false;
+            showModal('⛔ 推理错误', '你的侦探笔记虽然画全了，但推导出的结论是错误的。\n请重新检查线索，真正的凶手不是这一位...', false);
+        }
+    },
+    
+// 弹窗关闭时的回调
+    onModalClose() {
+        document.getElementById('modal-overlay').style.display = 'none'; 
+        document.getElementById('modal-box').style.display = 'none';
+        
+        // 只有当标记为“准备跳转”时（即答对了），才切换关卡并滚回顶部
+        if (this.pendingNextLevel) {
+            this.pendingNextLevel = false;
+            this.changeLevel(1);
+        }
+        // 如果是答错关闭弹窗，代码运行到这里就结束了
+        // 不会重新加载页面，也不会滚动，方便你继续修改答案
+    }
+};
+
+function showModal(title, msg, isSuccess, btnText = '关闭') { 
+    document.getElementById('modal-title').innerText = title; 
+    document.getElementById('modal-msg').innerText = msg; 
+    document.getElementById('modal-btn').innerText = btnText;
+    document.getElementById('modal-overlay').style.display = 'block'; 
+    document.getElementById('modal-box').style.display = 'block'; 
+}
+
+window.onload = () => game.init();
+</script>
+</body>
+</html>
