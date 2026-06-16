@@ -88,19 +88,19 @@ CleverGrid/
 新增案件建议按下面流程进行：
 
 ```text
-阅读 docs/case-schema.md
+编写案件
 ↓
-阅读 docs/case-template.md
+编写 clues
 ↓
-复制 docs/example-case.md
+编写 rules
 ↓
-修改案件内容
+运行 Validator
 ↓
-加入 cases/ 并登记 manifest.js
-↓
-运行 tools/validator.html
+Solver 验证唯一解
 ↓
 试玩验证
+↓
+发布
 ```
 
 具体说明：
@@ -112,8 +112,9 @@ CleverGrid/
 5. 为线索补充机器可读的 `rules`。
 6. 将整理好的案件保存为 `cases/` 下的独立案件文件。
 7. 在 `cases/manifest.js` 中登记新案件。
-8. 打开 `tools/validator.html` 检查数据。
-9. 校验通过后，打开 `index.html` 试玩，确认案件可以正常完成。
+8. 打开 `tools/validator.html` 检查数据和 Solver 唯一解。
+9. 确认 Validator 通过、Solver 显示唯一解且匹配 `fullTruth`。
+10. 打开 `index.html` 试玩，确认案件可以正常完成。
 
 维护者新增案件时，建议先设计完整真相，再编写线索。不要先写线索，再拼凑答案。
 

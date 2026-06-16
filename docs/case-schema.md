@@ -119,7 +119,7 @@ rainy-museum-theft
 
 ## clues 写法要求
 
-`clues` 面向玩家展示，负责自然语言线索。当前老案件仍兼容字符串数组：
+`clues` 面向玩家展示，负责自然语言线索。当前格式仍兼容字符串数组：
 
 ```js
 clues: [
@@ -199,6 +199,44 @@ rules: [
 - 本阶段只支持 `same` / `notSame`，暂不设计复杂条件规则。
 - 当前游戏 UI 仍按字符串显示 clues，所以正式可玩的案件暂时应继续使用字符串 clues。
 - 当前 5 个正式案件已经包含 `rules`；未来新增案件也应包含 `rules`。
+
+## Solver 工作方式
+
+Solver 用 `rules` 计算案件是否有解，不会把 `fullTruth` 或 `solution` 当作求解条件。
+
+当前输入：
+
+- `suspects`
+- `weapons`
+- `locations`
+- `rules`
+
+当前输出状态：
+
+| 状态 | 含义 | Validator 处理 |
+| --- | --- | --- |
+| `unique` | rules 只能推出 1 个解 | 通过，并继续对比 `fullTruth`。 |
+| `multiple` | rules 能推出多个解 | warning；说明线索不足或有复杂线索未结构化。 |
+| `none` | rules 推不出任何解 | error；说明 rules 互相矛盾或和基础数据不一致。 |
+| `invalid` | 输入格式不合法 | error。 |
+
+算法说明：
+
+- 固定 suspects 顺序。
+- 枚举 weapons 和 locations 的排列组合。
+- 用 `same` / `notSame` 检查每个候选解。
+- 找到第 2 个解后即可判定多解。
+- 当前 3x3 到 5x5 案件规模可以直接运行，不需要后端或构建工具。
+
+## unique validation
+
+Validator 会在基础结构和 rules 结构都通过后运行 Solver：
+
+1. 如果 Solver 返回 `none`，案件失败。
+2. 如果 Solver 返回 `multiple`，本阶段显示 warning。
+3. 如果 Solver 返回 `unique`，Validator 会把唯一解和 `fullTruth` 完整对比。
+4. 如果唯一解不匹配 `fullTruth`，案件失败。
+5. 如果唯一解匹配 `fullTruth`，案件通过唯一解校验。
 
 ## fullTruth 写法要求
 

@@ -148,6 +148,18 @@ UzMtVzEtTDM=
 古董收藏家 - 铜制钥匙 - 后门走廊
 ```
 
+## Validator / Solver 预期结果
+
+这份示例案件的 `rules` 应该能推出唯一解：
+
+```text
+status: unique
+solutionCount: 1
+matchesFullTruth: true
+```
+
+如果 Validator 显示多解，说明 rules 不足；如果显示无解或不匹配 `fullTruth`，说明 rules、clues 或 fullTruth 存在矛盾。
+
 ## cases/manifest.js 登记方式
 
 新增案件文件后，在 `cases/manifest.js` 中加入案件 id：

@@ -147,7 +147,7 @@ version: 1
 - clues 面向玩家展示，可以写得自然、有剧情感。
 - Validator 不会直接理解 clues 的自然语言语义；未来 Solver 会读取 rules。
 
-当前老案件仍可使用字符串线索：
+当前格式仍可使用字符串线索：
 
 ```js
 clues: [
@@ -176,8 +176,7 @@ rules: [
         type: "same",
         left: "S1",
         right: "W1",
-        sourceClueId: "C1",
-        note: "可选备注"
+        note: "对应线索：园丁拿着铜钥匙。"
     }
 ]
 ```
@@ -190,13 +189,13 @@ rules: [
 示例：
 
 ```js
-{ id: "R1", type: "same", left: "S1", right: "W2", sourceClueId: "C1" }
+{ id: "R1", type: "same", left: "S1", right: "W2", note: "对应线索：园丁拿着蓝色工具箱。" }
 ```
 
 含义：`S1` 使用 `W2`。
 
 ```js
-{ id: "R2", type: "notSame", left: "W1", right: "L3", sourceClueId: "C2" }
+{ id: "R2", type: "notSame", left: "W1", right: "L3", note: "对应线索：铜钥匙不在仓库。" }
 ```
 
 含义：`W1` 不在 `L3`。
@@ -210,9 +209,21 @@ rules: [
 - `sourceClueId` 如果填写，必须对应一条 clue 的 id。
 - 一条 clue 可以对应多条 rules。
 - rules 必须与 fullTruth 一致。
-- 当前老案件可以暂时没有 rules，但 Validator 会显示 warning。
-- 未来新增案件应包含 rules，方便后续唯一解校验。
+- 新增案件应包含 rules，方便 Validator 和 Solver 判断唯一解。
 - 当前游戏 UI 仍按字符串显示 clues，所以正式可玩的案件暂时应继续使用字符串 clues；`sourceClueId` 可以等 UI 兼容 clue id 后再填写。
+
+完整示例：
+
+```js
+clues: [
+    "园丁拿着蓝色工具箱。",
+    "铜钥匙不在仓库。"
+],
+rules: [
+    { id: "R1", type: "same", left: "S1", right: "W2", note: "对应线索：园丁拿着蓝色工具箱。" },
+    { id: "R2", type: "notSame", left: "W1", right: "L3", note: "对应线索：铜钥匙不在仓库。" }
+]
+```
 
 ## fullTruth 写法要求
 
@@ -295,11 +306,13 @@ flowchart TD
     J --> K{"是否全部通过"}
     K -->|否| L["修正案件文件"]
     L --> J
-    K -->|是| M["打开 index.html 试玩"]
-    M --> N{"是否能正常破案"}
-    N -->|否| O["调整线索或真相"]
-    O --> J
-    N -->|是| P["案件可以发布"]
+    K -->|是| M{"Solver 是否唯一解"}
+    M -->|否| L
+    M -->|是| N["打开 index.html 试玩"]
+    N --> O{"是否能正常破案"}
+    O -->|否| P["调整线索或真相"]
+    P --> J
+    O -->|是| Q["案件可以发布"]
 ```
 
 ## Validator 会检查什么
@@ -327,6 +340,9 @@ flowchart TD
 - rule left / right 是否来自不同分类。
 - rule sourceClueId 如果存在，是否能在 clues 中找到。
 - rule 是否与 fullTruth 一致。
+- Solver 是否有解。
+- Solver 是否唯一解。
+- Solver 唯一解是否匹配 fullTruth。
 
 ## 最后检查清单
 
@@ -341,5 +357,5 @@ flowchart TD
 - solution 解码后来自 fullTruth。
 - clues 至少 1 条，且不与真相矛盾。
 - 新增案件应包含 rules，且 rules 与 fullTruth 一致。
-- `tools/validator.html` 全部通过。
+- `tools/validator.html` 全部通过，并显示 Solver 唯一解。
 - `index.html` 可以试玩并破案。
