@@ -1,124 +1,133 @@
 # CleverGrid 案件编写规范
 
-这份文档用于指导非技术维护者新增案件。目标是：按照固定顺序填写内容，再用校验工具检查，最后试玩确认。
+这份文档用于指导维护者新增案件。完整字段定义见 [case-schema.md](case-schema.md)，可复制示例见 [example-case.md](example-case.md)。
 
-新增案件时，只需要关心 7 类内容：
+当前项目的案件不再集中写在 `data.js` 中。每个案件都应该放在 `cases/` 下的独立 JS 文件里，并在 `cases/manifest.js` 中登记。
 
-1. 案件标题
-2. 难度
-3. 嫌疑人 suspects
-4. 凶器 weapons
-5. 地点 locations
-6. 线索 clues
-7. 答案 solution 与完整真相 fullTruth
+## 新增案件只需要关心的内容
 
-## 案件结构说明
+1. 案件 id
+2. version
+3. 案件标题 title
+4. 难度 difficulty
+5. 开场描述 intro
+6. 嫌疑人 suspects
+7. 凶器/道具 weapons
+8. 地点 locations
+9. 线索 clues
+10. 完整真相 fullTruth
+11. 最终答案 solution
 
-每个案件都由三组卡片和一组线索组成：
+## 推荐设计顺序
 
-- suspects：嫌疑人
-- weapons：凶器、物品、关键道具
-- locations：地点
-- clues：玩家推理用的文字线索
-- solution：最终结案答案，只包含凶手、凶器、地点
-- fullTruth：完整真相，说明每个嫌疑人分别对应哪个凶器和地点
+不要从线索开始设计。
 
-一个案件里的嫌疑人、凶器、地点数量必须一致。
+推荐顺序：
 
-例如：
+1. 确定案件主题和标题。
+2. 确定案件 id，例如 `rainy-museum-theft`。
+3. 选择人数规模：3 人、4 人或 5 人。
+4. 填写 suspects、weapons、locations。
+5. 先写 fullTruth，确定每个人、每件物品、每个地点的真实组合。
+6. 从 fullTruth 中选择一行作为 solution 原文。
+7. 将 solution 原文转成 Base64，写入 `solution` 字段。
+8. 围绕 fullTruth 编写 clues。
+9. 打开 `tools/validator.html` 校验。
+10. 打开 `index.html` 手动试玩。
 
-- 3 个嫌疑人，就必须有 3 个凶器、3 个地点
-- 4 个嫌疑人，就必须有 4 个凶器、4 个地点
-- 5 个嫌疑人，就必须有 5 个凶器、5 个地点
+原则：真相决定线索。不要先写线索，再拼凑真相。
+
+## id 命名规则
+
+案件 id 使用小写英文和短横线：
+
+```text
+rainy-museum-theft
+```
+
+要求：
+
+- 只使用小写英文字母、数字和英文短横线 `-`。
+- 不使用中文、空格、下划线或标点。
+- 文件名、注册表 key、manifest 条目必须一致。
+- 案件发布后不要修改 id，否则旧存档会失去对应关系。
+
+对象 id 建议：
+
+- 嫌疑人：`S1`、`S2`、`S3`
+- 凶器/道具：`W1`、`W2`、`W3`
+- 地点：`L1`、`L2`、`L3`
+
+## version 使用规则
+
+新案件从：
+
+```js
+version: 1
+```
+
+开始。
+
+如果只改错别字或描述润色，通常不用升级。
+如果修改关键线索、fullTruth、solution、人物/物品/地点列表，建议 version 加 1。
 
 ## 难度参考
 
 | 难度 | 人数 | 推荐线索数 |
-|--------|--------|--------|
+| --- | --- | --- |
 | 入门 | 3 | 5-7 |
 | 普通 | 4 | 8-10 |
 | 困难 | 5 | 12-15 |
 | 专家 | 5 | 15+ |
 
-难度主要由信息量和排除关系决定。
-
-不要单纯通过减少线索制造难度。线索太少会让玩家觉得无从下手，而不是觉得谜题更聪明。
+不要单纯通过减少线索制造难度。线索太少会让玩家觉得无从下手。
 
 ## suspects 规则
 
-suspects 是嫌疑人列表。
+每个嫌疑人需要：
 
-每个嫌疑人需要填写：
-
-- id：唯一编号
-- name：显示给玩家看的名字
-- icon：显示在卡片和网格里的图标
-- desc：人物描述
-- traits：可用于推理的人物特征
+```js
+{ id: 'S1', name: '值夜班保安', icon: '🧢', desc: '负责夜间巡逻。', traits: '戴蓝色帽子' }
+```
 
 填写建议：
 
-- id 使用 `S1`、`S2`、`S3` 这样的编号。
-- 同一个案件里，嫌疑人 id 不能重复。
 - name 尽量短，避免卡片显示太挤。
-- traits 应该包含能帮助推理的特征，例如“戴眼镜”“左撇子”“红色围巾”。
-- 不要让两个嫌疑人的 traits 完全一样，否则线索会变得难写。
-
-好的 suspects 设计：
-
-- S1：有明确身份
-- S2：有明显外观特征
-- S3：有可被线索引用的行为或习惯
-
-不建议：
-
-- 所有人都没有特征
-- 所有人描述很长但无法用于推理
-- id 写成中文名，后续容易填错
+- desc 用于人物叙事。
+- traits 应该能被线索引用，例如“戴眼镜”“左撇子”“红色围巾”。
+- 同一个案件内 suspects id 不能重复。
 
 ## weapons 规则
 
-weapons 是凶器、道具或关键物品列表。
+每个凶器、道具或关键物品需要：
 
-每个凶器需要填写：
-
-- id：唯一编号
-- name：显示名称
-- icon：图标
-- tag：物品类型
-- desc：物品描述
+```js
+{ id: 'W1', name: '铜制钥匙', icon: '🗝️', tag: '钥匙', desc: '可以打开后门。' }
+```
 
 填写建议：
 
-- id 使用 `W1`、`W2`、`W3` 这样的编号。
-- tag 用于快速理解物品类型，例如“钝器”“利器”“饮料”“工具”“证物”。
-- 每个物品最好有不同特征，方便线索引用。
-- 如果案件不是杀人案，weapons 也可以理解为“关键道具”。
+- 如果案件不是杀人案，weapons 可以理解为“关键道具”。
+- tag 用于快速理解类型，例如“钝器”“工具”“证物”“饮料”。
+- 每个物品最好有不同特征，方便写线索。
 
 ## locations 规则
 
-locations 是地点列表。
+每个地点需要：
 
-每个地点需要填写：
-
-- id：唯一编号
-- name：显示名称
-- icon：图标
-- tag：地点类型
-- desc：地点描述
+```js
+{ id: 'L1', name: '主展厅', icon: '🏛️', tag: '展区', desc: '被盗画作原本挂在这里。' }
+```
 
 填写建议：
 
-- id 使用 `L1`、`L2`、`L3` 这样的编号。
+- 地点之间要有明显差异。
 - tag 可以写“室内”“户外”“限制区域”“公共区域”等。
-- 地点之间要有明显差异，方便线索表达。
 - 不建议使用过长地点名。
 
-## clues 规则
+## clues 写法要求
 
-clues 是线索列表。玩家主要通过这些线索完成推理。
-
-线索可以表达几种关系：
+线索可以表达：
 
 - 某人对应某物：例如“园丁拿着铜钥匙。”
 - 某人对应某地：例如“厨师一直待在厨房。”
@@ -129,238 +138,127 @@ clues 是线索列表。玩家主要通过这些线索完成推理。
 
 填写要求：
 
-- clues 数量必须大于 0。
-- 线索必须足够推出唯一答案。
-- 不要出现和 fullTruth 矛盾的线索。
-- 不要把答案直接写得太明显，除非是入门案件。
+- 至少 1 条线索，正式案件建议 5 条以上。
 - 每条线索尽量只表达一个重点。
+- 线索必须和 fullTruth 一致。
+- 不要直接写最终答案，除非是新手教学关。
+- Validator 当前不会理解线索语义，也不会判断唯一解，必须手动试玩。
 
-## 案件设计推荐流程
+## fullTruth 写法要求
 
-不要从线索开始设计。
-
-推荐顺序：
-
-1. 先设计完整真相（fullTruth）
-2. 确定最终答案（solution）
-3. 设计关键排除关系
-4. 编写线索
-5. 使用校验工具检查
-6. 实际试玩验证
-
-原则：
-
-真相决定线索。
-
-不要先写线索，再拼凑真相。
-
-## solution 规则
-
-solution 是最终结案答案，由 3 个部分组成：
-
-- 凶手的 suspect id
-- 凶器的 weapon id
-- 地点的 location id
-
-例如：
+fullTruth 是完整真相。每一行代表：
 
 ```text
-S2-W3-L1
+嫌疑人 id - 凶器/道具 id - 地点 id
 ```
 
-维护者只需要填写答案原文：
+代码格式：
 
-```text
-S2-W3-L1
+```js
+fullTruth: [
+    ['S1', 'W2', 'L1'],
+    ['S2', 'W3', 'L2'],
+    ['S3', 'W1', 'L3']
+]
 ```
 
-如果项目后续提供案件工具，会自动生成 solution 字段。
-
-维护者无需关心编码细节。
-
-注意：
-
-- 顺序必须是“嫌疑人-凶器-地点”。
-- id 必须真实存在。
-- 中间使用英文短横线 `-`。
-- 不要使用中文破折号。
-
-## fullTruth 规则
-
-fullTruth 是完整真相。它不只是最终答案，而是整个案件所有人物的真实对应关系。
-
-每一行代表：
-
-```text
-嫌疑人 id - 凶器 id - 地点 id
-```
-
-例如：
-
-```text
-S1-W1-L2
-S2-W3-L1
-S3-W2-L3
-```
-
-fullTruth 必须满足：
+要求：
 
 - 覆盖所有嫌疑人。
 - 每个嫌疑人只能出现一次。
-- 每个凶器最好只出现一次。
-- 每个地点最好只出现一次。
-- 每个 id 都必须存在于 suspects、weapons、locations。
-- solution 必须是 fullTruth 中某一行。
+- 每个凶器/道具应该只出现一次。
+- 每个地点应该只出现一次。
+- 每个 id 都必须存在。
+- 行数必须等于嫌疑人数。
 
-简单理解：
+## solution 规则
 
-fullTruth 是“标准答案表”，solution 是“玩家最终要提交的那一行”。
-
-## 新增案件时的填写顺序
-
-推荐按下面顺序写：
-
-1. 确定案件主题和标题。
-2. 确定难度，也就是 3 人、4 人还是 5 人。
-3. 填写 suspects。
-4. 填写 weapons。
-5. 填写 locations。
-6. 先写 fullTruth，确定每个人、每件物品、每个地点的真实组合。
-7. 从 fullTruth 中选择一行作为 solution 原文。
-8. 编写 clues。
-9. 打开校验工具检查数据。
-10. 打开游戏试玩，确认可以正常破案。
-
-## 常见错误示例
-
-### 错误 1：三类数量不一致
-
-错误：
+solution 是最终结案答案，只包含一行：
 
 ```text
-suspects 有 4 个
-weapons 有 3 个
-locations 有 4 个
+S3-W1-L3
 ```
 
-正确：
+这行必须来自 fullTruth。
 
-```text
-suspects、weapons、locations 必须都是 4 个
+当前案件文件中 `solution` 存 Base64 编码：
+
+```js
+solution: "UzMtVzEtTDM="
 ```
 
-### 错误 2：solution 使用了不存在的 id
+未来 Editor 应让维护者填写原文 `S3-W1-L3`，再自动导出编码后的 `solution`。
 
-错误：
+## 当前案件文件模板
 
-```text
-solution 原文：S5-W1-L1
-但 suspects 里只有 S1、S2、S3
+```js
+window.CLEVERGRID_CASE_REGISTRY = window.CLEVERGRID_CASE_REGISTRY || {};
+window.CLEVERGRID_CASE_REGISTRY["rainy-museum-theft"] = {
+    id: "rainy-museum-theft",
+    version: 1,
+    title: "雨夜美术馆失窃案",
+    difficulty: "入门级",
+    intro: "暴雨之夜，美术馆最珍贵的一幅画作不翼而飞。",
+    suspects: [],
+    weapons: [],
+    locations: [],
+    clues: [],
+    solution: "UzMtVzEtTDM=",
+    fullTruth: []
+};
 ```
 
-正确：
-
-```text
-solution 中的每个 id 都必须能在对应列表里找到
-```
-
-### 错误 3：fullTruth 没有覆盖所有嫌疑人
-
-错误：
-
-```text
-suspects 有 S1、S2、S3
-fullTruth 只写了 S1、S2
-```
-
-正确：
-
-```text
-fullTruth 必须包含 S1、S2、S3
-```
-
-### 错误 4：线索数量为 0
-
-错误：
-
-```text
-clues 为空
-```
-
-正确：
-
-```text
-至少写 1 条线索。正式案件建议写 5 条以上。
-```
-
-### 错误 5：线索和真相矛盾
-
-错误：
-
-```text
-fullTruth 写 S1 在 L1
-clues 写 S1 不在 L1
-```
-
-正确：
-
-```text
-每条线索都必须符合 fullTruth
-```
-
-### 错误 6：solution 顺序写反
-
-错误：
-
-```text
-W2-S1-L3
-```
-
-正确：
-
-```text
-S1-W2-L3
-```
-
-顺序永远是：
-
-```text
-嫌疑人 - 凶器 - 地点
-```
-
-## 新增案件流程图
+## 新增案件标准流程
 
 ```mermaid
 flowchart TD
-    A["确定案件主题"] --> B["选择难度和数量"]
-    B --> C["填写 suspects 嫌疑人"]
-    C --> D["填写 weapons 凶器/道具"]
-    D --> E["填写 locations 地点"]
-    E --> F["编写 fullTruth 完整真相"]
-    F --> G["选择 solution 最终答案原文"]
-    G --> H["编写 clues 线索"]
-    H --> I["打开 tools/validator.html 校验"]
-    I --> K{"是否全部通过"}
-    K -->|否| L["根据失败项修正案件数据"]
-    L --> I
-    K -->|是| M["打开 index.html 试玩"]
-    M --> N{"是否能正常破案"}
-    N -->|否| O["调整线索或真相"]
-    O --> I
-    N -->|是| P["案件可以发布"]
+    A["确定案件主题"] --> B["选择 id 和 version"]
+    B --> C["新建 cases/xxx.js"]
+    C --> D["填写 suspects/weapons/locations"]
+    D --> E["编写 fullTruth"]
+    E --> F["选择 solution"]
+    F --> G["编写 clues"]
+    G --> H["登记 cases/manifest.js"]
+    H --> I["打开 tools/validator.html"]
+    I --> J{"是否全部通过"}
+    J -->|否| K["修正案件文件"]
+    K --> I
+    J -->|是| L["打开 index.html 试玩"]
+    L --> M{"是否能正常破案"}
+    M -->|否| N["调整线索或真相"]
+    N --> I
+    M -->|是| O["案件可以发布"]
 ```
+
+## Validator 会检查什么
+
+- case id 是否存在。
+- case id 是否重复。
+- version 是否存在。
+- title 是否存在。
+- suspects / weapons / locations 是否为空。
+- suspects / weapons / locations 是否都有 id。
+- suspects / weapons / locations 内部 id 是否重复。
+- suspects / weapons / locations 数量是否一致。
+- solution 是否能解码为三段 id。
+- solution 中的嫌疑人、物品、地点是否存在。
+- fullTruth 是否覆盖所有嫌疑人。
+- fullTruth 每行 id 是否有效。
+- fullTruth 是否完整。
+- solution 是否对应到 fullTruth。
+- clues 数量是否大于 0。
 
 ## 最后检查清单
 
 发布前确认：
 
-- 标题清楚。
-- 难度合理。
+- 文件名和案件 id 一致。
+- 案件 id 已加入 `cases/manifest.js`。
+- version 已填写。
 - suspects、weapons、locations 数量一致。
-- 每个对象都有 id。
-- solution 原文顺序正确。
-- solution 原文已经确定，且来自 fullTruth 中的某一行。
-- fullTruth 覆盖所有嫌疑人。
+- 每个对象都有唯一 id。
+- fullTruth 完整。
+- solution 解码后来自 fullTruth。
 - clues 至少 1 条，且不与真相矛盾。
-- 校验工具全部通过。
-- 游戏中可以完成破案。
+- `tools/validator.html` 全部通过。
+- `index.html` 可以试玩并破案。

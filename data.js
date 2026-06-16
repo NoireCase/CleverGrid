@@ -1,227 +1,33 @@
-// 这里存储所有的案件数据
-const GAME_DATA = [
-    // --- 第 1 案 (入门) ---
-    {
-        title: "好莱坞杀人事件",
-        difficulty: "入门级",
-        intro: "当图威利·洛基克受邀参加好莱坞山庄豪宅的高级晚宴时，他以为自己终于出人头地了。遗憾的是，他并不是主宾：他之所以被邀请，是为了破解主宾遇害的案子。",
-        suspects: [
-            { id: 'A', name: '神奇的奥瑞林', icon: '🎩', desc: '魔术师，完美地表演了将丈夫锯成两半的魔术。然后，她把他的尸体变没了。', traits: '5英尺6英寸 · 左撇子 · 绿眼睛 · 金发' },
-            { id: 'B', name: '米德耐特三世', icon: '🕶️', desc: '电影制片厂创始人的孙子，自称是白手起家。', traits: '5英尺8英寸 · 左撇子 · 深棕色眼睛 · 深棕色头发' },
-            { id: 'C', name: '奥比斯迪亚夫人', icon: '👒', desc: '推理小说家，其作品销量超过《圣经》和莎士比亚作品的总和。', traits: '5英尺4英寸 · 左撇子 · 绿眼睛 · 黑发' }
-        ],
-        locations: [
-            { id: 'BATH', name: '巨大的浴室', icon: '🛁', tag: '室内', desc: '比图威利·洛基克的房子还大。' },
-            { id: 'BED', name: '卧室', icon: '🛏️', tag: '室内', desc: '一尘不染的白色房间内摆放着一张加州特大号床，床铺尚未整理。' },
-            { id: 'THEATER', name: '放映室', icon: '📺', tag: '室内', desc: '红色天鹅绒座椅和爆米花机使这里成为看电影的最佳场所。' }
-        ],
-        weapons: [
-            { id: 'FORK', name: '一把餐叉', icon: '🍴', tag: '轻量级', desc: '您仔细琢磨琢磨，这玩意儿其实比刀可怕得多。' },
-            { id: 'PIPE', name: '一根铅管', icon: '💈', tag: '重量级', desc: '铅比铝安全，可是对着您的脑袋来一下就不一定了。' },
-            { id: 'CANDLE', name: '有分量的蜡烛', icon: '🕯️', tag: '重量级', desc: '重量足够杀人，不过本职是用来给房间照明的。' }
-        ],
-        clues: [
-            "神奇的奥瑞林信任持有餐叉的嫌疑人。",
-            "洛基克赶到时，米德耐特三世还在挥舞铅管。",
-            "卧室里没发现颇有分量的蜡烛。",
-            "奥比斯迪亚夫人被发现躲在红色天鹅绒座椅下。",
-            "尸体是在一个大理石浴缸内被发现的。"
-        ],
-        solution: "QS1DQU5ETEUtQkFUSA==",
-        // 补充真相：A(奥瑞林)-CANDLE-BATH, B(米德耐特)-PIPE-BED, C(奥比斯迪亚)-FORK-THEATER
-        fullTruth: [
-            ['A', 'CANDLE', 'BATH'],
-            ['B', 'PIPE', 'BED'],
-            ['C', 'FORK', 'THEATER']
-        ]
-    },
-
-    // --- 第 2 案 (中级 - 图书馆) ---
-    {
-        title: "深夜图书馆之谜",
-        difficulty: "中级",
-        intro: "市图书馆的管理员在闭馆后听到了一声惨叫。一本珍贵的古籍不见了，地上留下了一滩墨水。谁是那个深夜潜入的破坏者？",
-        suspects: [
-            { id: 'S1', name: '暴躁的管理员', icon: '👴', desc: '在这个图书馆工作了40年，讨厌任何发出声音的人。', traits: '右撇子 · 戴眼镜 · 驼背' },
-            { id: 'S2', name: '历史系学生', icon: '🎓', desc: '为了写论文已经连续三天泡在图书馆了，看起来精神恍惚。', traits: '左撇子 · 黑眼圈 · 总是背着书包' },
-            { id: 'S3', name: '神秘的收藏家', icon: '🧐', desc: '无论去哪里都带着白手套，对古书有种病态的痴迷。', traits: '右撇子 · 穿风衣 · 拄拐杖' }
-        ],
-        locations: [
-            { id: 'L1', name: '珍本藏书室', icon: '📚', tag: '上锁区域', desc: '平时大门紧锁，只有特定的钥匙才能打开。' },
-            { id: 'L2', name: '阅览大厅', icon: '🏛️', tag: '公共区域', desc: '巨大的穹顶下排列着数百张桌子，回声很大。' },
-            { id: 'L3', name: '地下档案库', icon: '🗄️', tag: '限制区域', desc: '空气中弥漫着发霉的纸张味道，灯光昏暗。' }
-        ],
-        weapons: [
-            { id: 'W1', name: '沉重的字典', icon: '📕', tag: '钝器', desc: '知识就是力量，物理意义上的力量。' },
-            { id: 'W2', name: '拆信刀', icon: '🗡️', tag: '利器', desc: '锋利无比，通常用来裁开信封，或者是别的什么。' },
-            { id: 'W3', name: '古董台灯', icon: '🛋️', tag: '钝器', desc: '底座是纯铜铸造的，非常压手。' }
-        ],
-        clues: [
-            "历史系学生从来不去地下档案库，因为怕鬼。",
-            "暴躁的管理员手里拿着那把拆信刀。",
-            "被盗古籍的展示柜是被锋利的利器撬开的。",
-            "拿着沉重字典的人不是收藏家。",
-            "有人在珍本藏书室看到了那个戴眼镜的人。"
-        ],
-        solution: "UzEtVzItTDE=",
-        // 补充真相：S1(管理员)-W2(拆信刀)-L1(珍本室)[凶手], S2(学生)-W3(台灯)-L2(阅览室), S3(收藏家)-W1(字典)-L3(档案库)
-        fullTruth: [
-            ['S1', 'W2', 'L1'],
-            ['S2', 'W3', 'L2'],
-            ['S3', 'W1', 'L3']
-        ]
-    },
-
-    {
-        title: "乾汁中毒事件",
-        difficulty: "进阶版",
-        intro: "网球部的正选队员喝下了恐怖的“乾汁”后倒地不起。这杯生化武器到底是谁在这个地点递给他的？",
-        suspects: [
-            { id: 'S1', name: '越前龙马', icon: '🧢', desc: '口头禅是“还差得远呢”。', traits: '白色帽子' },
-            { id: 'S2', name: '手冢国光', icon: '👓', desc: '青学网球部部长。', traits: '严肃 · 眼镜' },
-            { id: 'S3', name: '乾贞治', icon: '📊', desc: '数据网球高手。', traits: '反光眼镜' },
-            { id: 'S4', name: '不二周助', icon: '🌵', desc: '被称为天才。', traits: '总是眯眯眼' }
-        ],
-        locations: [
-            { id: 'L1', name: '网球场', icon: '🎾', tag: '比赛区', desc: '挥洒汗水的地方。' },
-            { id: 'L2', name: '社办', icon: '🚪', tag: '休息区', desc: '存放资料的地方。' },
-            { id: 'L3', name: '更衣室', icon: '👕', tag: '室内', desc: '大家换衣服的地方。' },
-            { id: 'L4', name: '天台', icon: '☁️', tag: '室外', desc: '适合午睡。' }
-        ],
-        weapons: [
-            { id: 'W1', name: '红色球拍', icon: '🟥', tag: '球具', desc: '一只红色的备用球拍。' },
-            { id: 'W2', name: '蓝色球拍', icon: '🟦', tag: '球具', desc: '一只蓝色的主力球拍。' },
-            { id: 'W3', name: '绷带', icon: '🤕', tag: '医疗', desc: '用来保护手肘。' },
-            { id: 'W4', name: '特制乾汁', icon: '🍵', tag: '生化武器', desc: '绿色的粘稠液体。' }
-        ],
-        clues: [
-            "越前龙马正在天台休息。",
-            "拿特制乾汁的人不是越前龙马。",
-            "不二周助绝对不在网球场。",
-            "蓝色球拍被遗忘在了网球场。",
-            "手冢国光使用的是蓝色球拍。",
-            "拿着绷带的人正在更衣室里。",
-            "乾贞治手里拿的不是红色球拍。",
-            "待在社办里的人不是不二周助。",
-            "特制乾汁要么在不二周助手里，要么就在社办里（只能是其中一种情况）。"
-        ],
-        solution: "UzMtVzQtTDI=", // 乾贞治-乾汁-社办
-        // 补充真相：
-        // S1(龙马)-W1(红球拍)-L4(天台)
-        // S2(手冢)-W2(蓝球拍)-L1(网球场)
-        // S3(乾)-W4(乾汁)-L2(社办) [凶手]
-        // S4(不二)-W3(绷带)-L3(更衣室)
-        fullTruth: [
-            ['S1', 'W1', 'L4'],
-            ['S2', 'W2', 'L1'],
-            ['S3', 'W4', 'L2'],
-            ['S4', 'W3', 'L3']
-        ]
-    },
-
-    // --- 案件二：喜羊羊与灰太狼 (4x4 标准题) ---
-    {
-        title: "青青草原陷阱之谜",
-        difficulty: "进阶版",
-        intro: "有人在青青草原设下了埋伏！村长慢羊羊发现了一个伪装的很好的陷阱，这到底是谁干的？",
-        suspects: [
-            { id: 'S1', name: '喜羊羊', icon: '⚡', desc: '跑得最快的羊。', traits: '戴着铃铛' },
-            { id: 'S2', name: '懒羊羊', icon: '🍰', desc: '除了吃就是睡。', traits: '便便发型' },
-            { id: 'S3', name: '灰太狼', icon: '🐺', desc: '青青草原反派。', traits: '戴着破帽子' },
-            { id: 'S4', name: '慢羊羊', icon: '🐌', desc: '羊村村长。', traits: '头上有草' }
-        ],
-        locations: [
-            { id: 'L1', name: '狼堡', icon: '🏰', tag: '危险区域', desc: '灰太狼的家。' },
-            { id: 'L2', name: '羊村学校', icon: '🏫', tag: '安全区域', desc: '上课的地方。' },
-            { id: 'L3', name: '小河边', icon: '🌊', tag: '户外', desc: '钓鱼的地方。' },
-            { id: 'L4', name: '实验室', icon: '🧪', tag: '室内', desc: '搞发明的地方。' }
-        ],
-        weapons: [
-            { id: 'W1', name: '平底锅', icon: '🍳', tag: '钝器', desc: '红太狼的专属武器。' },
-            { id: 'W2', name: '青草蛋糕', icon: '🍰', tag: '诱饵', desc: '好吃的零食。' },
-            { id: 'W3', name: '隐形药水', icon: '💧', tag: '高科技', desc: '能让人消失。' },
-            { id: 'W4', name: '捕兽夹', icon: '⚙️', tag: '陷阱', desc: '踩上去很疼。' }
-        ],
-        clues: [
-            "懒羊羊正在吃青草蛋糕。",
-            "慢羊羊现在不在实验室。",
-            "平底锅没有出现在小河边。",
-            "喜羊羊就在实验室里。",
-            "拿着隐形药水的人正是喜羊羊。",
-            "捕兽夹被安放在了羊村学校。",
-            "灰太狼并没有拿捕兽夹。",
-            "在小河边的羊并没有拿平底锅。",
-            "慢羊羊要么在小河边，要么在羊村学校。"
-        ],
-        solution: "UzMtVzEtTDE=", // 灰太狼-平底锅-狼堡
-        // 补充真相：
-        // S1(喜羊羊)-W3(隐形药水)-L4(实验室)
-        // S2(懒羊羊)-W2(蛋糕)-L2(学校)
-        // S3(灰太狼)-W1(平底锅)-L1(狼堡) [凶手]
-        // S4(慢羊羊)-W4(捕兽夹)-L3(小河边)
-        fullTruth: [
-            ['S1', 'W3', 'L4'],
-            ['S2', 'W2', 'L2'],
-            ['S3', 'W1', 'L1'],
-            ['S4', 'W4', 'L3']
-        ]
-    },
-
-    // --- 案件三：名侦探柯南 (5x5 专家级) ---
-    {
-        title: "米花大饭店暗杀事件",
-        difficulty: "专家级",
-        intro: "黑衣组织正在进行交易。柯南需要在不暴露身份的情况下，推理出琴酒的位置和凶器。",
-        suspects: [
-            { id: 'S1', name: '柯南', icon: '🔎', desc: '外表是小孩，智慧过于常人。', traits: '红领结' },
-            { id: 'S2', name: '小兰', icon: '🥋', desc: '毛利侦探事务所的女儿。', traits: '空手道高手' },
-            { id: 'S3', name: '毛利小五郎', icon: '🍶', desc: '沉睡的小五郎。', traits: '胡子大叔' },
-            { id: 'S4', name: '服部平次', icon: '🧢', desc: '关西的高中生侦探。', traits: '黑皮肤' },
-            { id: 'S5', name: '琴酒', icon: '🕶️', desc: '黑衣组织核心成员。', traits: '银色长发' }
-        ],
-        locations: [
-            { id: 'L1', name: '侦探所', icon: '🏠', tag: '据点', desc: '楼下是波洛咖啡厅。' },
-            { id: 'L2', name: '咖啡厅', icon: '☕', tag: '一楼', desc: '安室透打工的地方。' },
-            { id: 'L3', name: '饭店天台', icon: '🌃', tag: '狙击点', desc: '视野开阔。' },
-            { id: 'L4', name: '米花公园', icon: '🌳', tag: '户外', desc: '适合交易。' },
-            { id: 'L5', name: '东都铁塔', icon: '🗼', tag: '地标', desc: '很高的红白铁塔。' }
-        ],
-        weapons: [
-            { id: 'W1', name: '追踪眼镜', icon: '👓', tag: '装备', desc: '阿笠博士的发明。' },
-            { id: 'W2', name: '空手道', icon: '👊', tag: '体术', desc: '最强的近战武器。' },
-            { id: 'W3', name: '啤酒', icon: '🍺', tag: '饮料', desc: '小五郎的最爱。' },
-            { id: 'W4', name: '武士刀', icon: '⚔️', tag: '冷兵器', desc: '平次随身携带的木刀。' },
-            { id: 'W5', name: '狙击枪', icon: '🔫', tag: '热兵器', desc: '黑色长管步枪。' }
-        ],
-        clues: [
-            "琴酒绝对不在侦探所。",
-            "小兰没有拿狙击枪。",
-            "在饭店天台的人手里没有空手道技能。",
-            "柯南戴着追踪眼镜。",
-            "在咖啡厅的人正在喝啤酒。",
-            "毛利小五郎就在咖啡厅。",
-            "服部平次带着武士刀。",
-            "东都铁塔那里发现了武士刀的痕迹。",
-            "小兰不在侦探所。",
-            "琴酒不会空手道。",
-            "琴酒要么在饭店天台，要么小兰在饭店天台。（二者必居其一）",
-            "狙击枪要么在米花公园，要么空手道在米花公园。",
-            "关键线索：如果小兰在饭店天台，那么狙击枪也一定在饭店天台。",
-            "柯南正在侦探所里思考案情。"
-        ],
-        solution: "UzUtVzUtTDM=", // 琴酒-狙击枪-天台
-        // 补充真相：
-        // S1(柯南)-W1(眼镜)-L1(侦探所)
-        // S2(小兰)-W2(空手道)-L4(公园)
-        // S3(小五郎)-W3(啤酒)-L2(咖啡厅)
-        // S4(平次)-W4(武士刀)-L5(铁塔)
-        // S5(琴酒)-W5(狙击枪)-L3(天台) [凶手]
-        fullTruth: [
-            ['S1', 'W1', 'L1'],
-            ['S2', 'W2', 'L4'],
-            ['S3', 'W3', 'L2'],
-            ['S4', 'W4', 'L5'],
-            ['S5', 'W5', 'L3']
-        ]
+// 这里按 manifest 顺序组装所有案件数据。
+// 每个案件对象维护在 cases/*.js 中，data.js 继续提供 GAME_DATA 给游戏和工具使用。
+(function (global) {
+    function getCaseId(entry) {
+        if (typeof entry === 'string') return entry;
+        if (entry && typeof entry === 'object' && entry.id) return entry.id;
+        throw new Error('案件 manifest 条目缺少 id');
     }
-];
+
+    function buildGameData() {
+        const manifest = global.CLEVERGRID_CASE_MANIFEST || [];
+        const registry = global.CLEVERGRID_CASE_REGISTRY || {};
+
+        return manifest.map(entry => {
+            const caseId = getCaseId(entry);
+            const item = registry[caseId];
+            if (!item) {
+                throw new Error(`案件未注册：${caseId}`);
+            }
+            return item;
+        });
+    }
+
+    function install() {
+        global.GAME_DATA = buildGameData();
+        return global.GAME_DATA;
+    }
+
+    global.CleverGridData = {
+        buildGameData,
+        install
+    };
+})(globalThis);
