@@ -30,8 +30,8 @@
 3. 选择人数规模：3 人、4 人或 5 人。
 4. 填写 suspects、weapons、locations。
 5. 先写 fullTruth，确定每个人、每件物品、每个地点的真实组合。
-6. 从 fullTruth 中选择一行作为 solution 原文。
-7. 将 solution 原文转成 Base64，写入 `solution` 字段。
+6. 从 fullTruth 中选择一行作为 `solution`。
+7. 按 `{ suspect, weapon, location }` 写入 `solution` 字段。
 8. 围绕 fullTruth 编写 clues。
 9. 把 clues 转成机器可读的 rules。
 10. 打开 `tools/validator.html` 校验。
@@ -254,21 +254,21 @@ fullTruth: [
 
 ## solution 规则
 
-solution 是最终结案答案，只包含一行：
-
-```text
-S3-W1-L3
-```
+solution 是最终结案答案，只包含一行真相。
 
 这行必须来自 fullTruth。
 
-当前案件文件中 `solution` 存 Base64 编码：
+当前案件文件中 `solution` 使用结构化对象：
 
 ```js
-solution: "UzMtVzEtTDM="
+solution: {
+    suspect: "S3",
+    weapon: "W1",
+    location: "L3"
+}
 ```
 
-未来 Editor 应让维护者填写原文 `S3-W1-L3`，再自动导出编码后的 `solution`。
+旧版 Base64 字符串仍可被读取，但新案件和 Editor 都应使用对象格式。
 
 ## 当前案件文件模板
 
@@ -285,7 +285,11 @@ window.CLEVERGRID_CASE_REGISTRY["rainy-museum-theft"] = {
     locations: [],
     clues: [],
     rules: [],
-    solution: "UzMtVzEtTDM=",
+    solution: {
+        suspect: "S3",
+        weapon: "W1",
+        location: "L3"
+    },
     fullTruth: []
 };
 ```
@@ -325,7 +329,7 @@ flowchart TD
 - suspects / weapons / locations 是否都有 id。
 - suspects / weapons / locations 内部 id 是否重复。
 - suspects / weapons / locations 数量是否一致。
-- solution 是否能解码为三段 id。
+- solution 是否能解析为三段 id。
 - solution 中的嫌疑人、物品、地点是否存在。
 - fullTruth 是否覆盖所有嫌疑人。
 - fullTruth 每行 id 是否有效。
@@ -354,7 +358,7 @@ flowchart TD
 - suspects、weapons、locations 数量一致。
 - 每个对象都有唯一 id。
 - fullTruth 完整。
-- solution 解码后来自 fullTruth。
+- solution 解析后来自 fullTruth。
 - clues 至少 1 条，且不与真相矛盾。
 - 新增案件应包含 rules，且 rules 与 fullTruth 一致。
 - `tools/validator.html` 全部通过，并显示 Solver 唯一解。

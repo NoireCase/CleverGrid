@@ -44,7 +44,7 @@ window.CLEVERGRID_CASE_REGISTRY["inui-juice-poisoning"] = {
             { id: "R7", type: "notSame", left: "S3", right: "W1", note: "对应线索：乾贞治手里拿的不是红色球拍。" },
             { id: "R8", type: "notSame", left: "L2", right: "S4", note: "对应线索：待在社办里的人不是不二周助。" }
         ],
-        solution: "UzMtVzQtTDI=", // 乾贞治-乾汁-社办
+        solution: { suspect: "S3", weapon: "W4", location: "L2" }, // 乾贞治-乾汁-社办
         // 补充真相：
         // S1(龙马)-W1(红球拍)-L4(天台)
         // S2(手冢)-W2(蓝球拍)-L1(网球场)

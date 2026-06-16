@@ -33,7 +33,7 @@ window.CLEVERGRID_CASE_REGISTRY["hollywood-murder"] = {
             { id: "R3", type: "notSame", left: "CANDLE", right: "BED", note: "对应线索：卧室里没发现颇有分量的蜡烛。" },
             { id: "R4", type: "same", left: "C", right: "THEATER", note: "对应线索：奥比斯迪亚夫人被发现躲在红色天鹅绒座椅下。" }
         ],
-        solution: "QS1DQU5ETEUtQkFUSA==",
+        solution: { suspect: "A", weapon: "CANDLE", location: "BATH" },
         // 补充真相：A(奥瑞林)-CANDLE-BATH, B(米德耐特)-PIPE-BED, C(奥比斯迪亚)-FORK-THEATER
         fullTruth: [
             ['A', 'CANDLE', 'BATH'],

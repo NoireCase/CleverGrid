@@ -46,7 +46,7 @@ window.CLEVERGRID_CASE_REGISTRY["qingqing-grassland-trap"] = {
             { id: "R8", type: "notSame", left: "L3", right: "W1", note: "对应线索：在小河边的羊并没有拿平底锅。" },
             { id: "R9", type: "notSame", left: "S2", right: "L1", note: "对应线索：懒羊羊说狼堡太危险，他没有去那里。" }
         ],
-        solution: "UzMtVzEtTDE=", // 灰太狼-平底锅-狼堡
+        solution: { suspect: "S3", weapon: "W1", location: "L1" }, // 灰太狼-平底锅-狼堡
         // 补充真相：
         // S1(喜羊羊)-W3(隐形药水)-L4(实验室)
         // S2(懒羊羊)-W2(蛋糕)-L2(学校)

@@ -55,7 +55,7 @@ window.CLEVERGRID_CASE_REGISTRY["beika-hotel-assassination"] = {
             { id: "R10", type: "notSame", left: "S5", right: "W2", note: "对应线索：琴酒不会空手道。" },
             { id: "R11", type: "same", left: "S1", right: "L1", note: "对应线索：柯南正在侦探所里思考案情。" }
         ],
-        solution: "UzUtVzUtTDM=", // 琴酒-狙击枪-天台
+        solution: { suspect: "S5", weapon: "W5", location: "L3" }, // 琴酒-狙击枪-天台
         // 补充真相：
         // S1(柯南)-W1(眼镜)-L1(侦探所)
         // S2(小兰)-W2(空手道)-L4(公园)

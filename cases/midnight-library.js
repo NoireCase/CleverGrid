@@ -33,7 +33,7 @@ window.CLEVERGRID_CASE_REGISTRY["midnight-library"] = {
             { id: "R3", type: "same", left: "W1", right: "S3", note: "对应线索：拿着沉重字典的人正是收藏家。" },
             { id: "R4", type: "same", left: "S1", right: "L1", note: "对应线索：有人在珍本藏书室看到了那个戴眼镜的人。" }
         ],
-        solution: "UzEtVzItTDE=",
+        solution: { suspect: "S1", weapon: "W2", location: "L1" },
         // 补充真相：S1(管理员)-W2(拆信刀)-L1(珍本室)[凶手], S2(学生)-W3(台灯)-L2(阅览室), S3(收藏家)-W1(字典)-L3(档案库)
         fullTruth: [
             ['S1', 'W2', 'L1'],

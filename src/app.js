@@ -1,5 +1,28 @@
 const STATE = { EMPTY: 0, PEN_X: 1, PEN_V: 2, PENCIL_Q: 3, PENCIL_X: 4 };
 
+function parseSolution(solution) {
+    if (solution && typeof solution === 'object') {
+        const parts = [solution.suspect, solution.weapon, solution.location];
+        return parts.every(Boolean) ? parts : [];
+    }
+
+    if (typeof solution === 'string' && solution.trim()) {
+        try {
+            const parts = atob(solution).split('-');
+            return parts.length === 3 ? parts : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    return [];
+}
+
+function solutionToText(solution) {
+    const parts = parseSolution(solution);
+    return parts.length === 3 ? parts.join('-') : '';
+}
+
 // GM Debug System
 const debugSystem = {
     buffer: [],
@@ -56,12 +79,7 @@ const debugSystem = {
     render() {
         const data = GAME_DATA[game.idx];
         if (data && data.solution) {
-            try {
-                const decoded = atob(data.solution);
-                document.getElementById('gm-solution-text').innerText = decoded;
-            } catch(e) {
-                document.getElementById('gm-solution-text').innerText = "Error decoding";
-            }
+            document.getElementById('gm-solution-text').innerText = solutionToText(data.solution) || "Error reading";
         }
     },
 
@@ -124,7 +142,7 @@ const debugSystem = {
         game.updateView();
 
         // 2. Auto Fill Truth Slots & Submit
-        const solParts = atob(data.solution).split('-');
+        const solParts = parseSolution(data.solution);
         game.truthState = {
             suspect: solParts[0],
             weapon: solParts[1],
@@ -420,7 +438,7 @@ const game = {
         const data = GAME_DATA[this.idx];
         const attempt = `${this.truthState.suspect}-${this.truthState.weapon}-${this.truthState.location}`;
 
-        if (btoa(attempt) === data.solution) {
+        if (attempt === solutionToText(data.solution)) {
             this.onWin();
         } else {
             // Error feedback

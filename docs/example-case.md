@@ -130,16 +130,14 @@ S3-W1-L3
 
 ## solution
 
-答案原文：
+当前案件文件中写入结构化对象：
 
-```text
-S3-W1-L3
-```
-
-当前案件文件中写入 Base64：
-
-```text
-UzMtVzEtTDM=
+```js
+solution: {
+    suspect: "S3",
+    weapon: "W1",
+    location: "L3"
+}
 ```
 
 含义：
@@ -219,7 +217,11 @@ window.CLEVERGRID_CASE_REGISTRY["rainy-museum-theft"] = {
         { id: "R4", type: "notSame", left: "S3", right: "W2", note: "来自 C4" },
         { id: "R5", type: "notSame", left: "W3", right: "L1", note: "来自 C5" }
     ],
-    solution: "UzMtVzEtTDM=",
+    solution: {
+        suspect: "S3",
+        weapon: "W1",
+        location: "L3"
+    },
     fullTruth: [
         ['S1', 'W2', 'L1'],
         ['S2', 'W3', 'L2'],

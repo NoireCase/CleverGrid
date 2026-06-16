@@ -25,7 +25,11 @@ window.CLEVERGRID_CASE_REGISTRY["rainy-museum-theft"] = {
     locations: [],
     clues: [],
     rules: [],
-    solution: "UzMtVzEtTDM=",
+    solution: {
+        suspect: "S3",
+        weapon: "W1",
+        location: "L3"
+    },
     fullTruth: []
 };
 ```
@@ -55,7 +59,7 @@ window.CLEVERGRID_CASE_MANIFEST = [
 | `clues` | array | 是 | 玩家阅读的文字线索列表。 |
 | `rules` | array | 建议必填 | 机器可读的结构化线索，供 Solver、Validator、Editor 使用。没有 rules 时无法进行唯一解校验。 |
 | `fullTruth` | array | 是 | 完整真相表，说明每个嫌疑人对应哪个物品和地点。 |
-| `solution` | string | 是 | 最终结案答案，当前为 `嫌疑人-物品-地点` 的 Base64 编码。 |
+| `solution` | object | 是 | 最终结案答案，格式为 `{ suspect, weapon, location }`。 |
 
 ## id 命名规则
 
@@ -269,24 +273,23 @@ fullTruth: [
 
 `solution` 是玩家最终要提交的那一行真相，必须来自 `fullTruth`。
 
-维护者可读原文：
-
-```text
-S3-W1-L3
-```
-
 当前案件文件中的字段：
 
 ```js
-solution: "UzMtVzEtTDM="
+solution: {
+    suspect: "S3",
+    weapon: "W1",
+    location: "L3"
+}
 ```
 
 规则：
 
-- 原文顺序固定为 `suspectId-weaponId-locationId`。
-- 中间使用英文短横线 `-`。
-- `solution` 解码后必须正好等于 `fullTruth` 中的一行。
-- 未来 Editor 应允许维护者填写原文，并自动导出 Base64 编码。
+- `suspect` 必须是一个有效嫌疑人 id。
+- `weapon` 必须是一个有效物品 id。
+- `location` 必须是一个有效地点 id。
+- `solution` 解析后必须正好等于 `fullTruth` 中的一行。
+- 旧版 Base64 字符串仍可被读取，用于兼容历史案件；新案件和 Editor 导出必须使用对象格式。
 
 ## 新增案件标准流程
 
@@ -311,7 +314,7 @@ Validator 当前检查：
 - suspects / weapons / locations 是否都有 id。
 - suspects / weapons / locations 内部 id 是否重复。
 - suspects / weapons / locations 数量是否一致。
-- solution 是否能解码为三段 id。
+- solution 是否能解析为三段 id。
 - solution 中的嫌疑人、物品、地点是否存在。
 - fullTruth 是否覆盖所有嫌疑人。
 - fullTruth 每行 id 是否有效。
@@ -382,7 +385,11 @@ window.CLEVERGRID_CASE_REGISTRY["rainy-museum-theft"] = {
         { id: "R2", type: "same", left: "S2", right: "L2", note: "来自第 2 条 clue" },
         { id: "R3", type: "same", left: "W1", right: "L3", note: "来自第 3 条 clue" }
     ],
-    solution: "UzMtVzEtTDM=",
+    solution: {
+        suspect: "S3",
+        weapon: "W1",
+        location: "L3"
+    },
     fullTruth: [
         ['S1', 'W2', 'L1'],
         ['S2', 'W3', 'L2'],

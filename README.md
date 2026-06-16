@@ -108,7 +108,7 @@ Solver 验证唯一解
 1. 先阅读 `docs/case-schema.md`，确认字段格式和 Editor 未来导出格式。
 2. 阅读 `docs/case-template.md`，理解案件需要哪些内容。
 3. 复制 `docs/example-case.md` 中的示例结构。
-4. 修改案件 id、标题、难度、嫌疑人、凶器、地点、线索、答案原文和完整真相。
+4. 修改案件 id、标题、难度、嫌疑人、凶器、地点、线索、结构化答案和完整真相。
 5. 为线索补充机器可读的 `rules`。
 6. 将整理好的案件保存为 `cases/` 下的独立案件文件。
 7. 在 `cases/manifest.js` 中登记新案件。
@@ -138,6 +138,7 @@ tools/validator.html
 - suspects / weapons / locations 是否都有 id
 - suspects / weapons / locations 内部 id 是否重复
 - suspects / weapons / locations 数量是否一致
+- solution 是否能解析为嫌疑人、凶器、地点
 - solution 中的嫌疑人、凶器、地点是否存在
 - fullTruth 是否覆盖所有嫌疑人
 - fullTruth 每行 ID 是否有效

@@ -3,7 +3,20 @@
         return typeof value === 'string' && value.trim().length > 0;
     }
 
-    function decodeSolution(solution) {
+    function parseSolution(solution) {
+        if (solution && typeof solution === 'object' && !Array.isArray(solution)) {
+            const parts = [solution.suspect, solution.weapon, solution.location];
+            const hasAllParts = parts.every(hasText);
+            const text = hasAllParts ? parts.join('-') : '';
+            return {
+                ok: hasAllParts,
+                parts: hasAllParts ? parts : [],
+                text,
+                format: 'object',
+                error: hasAllParts ? '' : 'solution 对象必须包含 suspect、weapon、location'
+            };
+        }
+
         if (!hasText(solution)) {
             return { ok: false, parts: [], text: '', error: 'solution 不存在' };
         }
@@ -11,10 +24,20 @@
         try {
             const text = atob(solution);
             const parts = text.split('-');
-            return { ok: parts.length === 3, parts, text, error: parts.length === 3 ? '' : 'solution 解码后不是三段 ID' };
+            return {
+                ok: parts.length === 3,
+                parts,
+                text,
+                format: 'base64',
+                error: parts.length === 3 ? '' : 'solution 解码后不是三段 ID'
+            };
         } catch (error) {
             return { ok: false, parts: [], text: '', error: 'solution 不是有效的 Base64' };
         }
+    }
+
+    function decodeSolution(solution) {
+        return parseSolution(solution);
     }
 
     function collectIds(items) {
@@ -207,7 +230,7 @@
         const suspectIds = collectIds(suspects);
         const weaponIds = collectIds(weapons);
         const locationIds = collectIds(locations);
-        const decoded = decodeSolution(item && item.solution);
+        const decoded = parseSolution(item && item.solution);
         const [solutionSuspect, solutionWeapon, solutionLocation] = decoded.parts;
         const fullTruthSuspects = new Set(fullTruth.map(row => Array.isArray(row) ? row[0] : null).filter(Boolean));
         const fullTruthWeapons = new Set(fullTruth.map(row => Array.isArray(row) ? row[1] : null).filter(Boolean));
@@ -248,7 +271,7 @@
             makeCheck(weaponDuplicates.length === 0, 'weapons id 是否重复', weaponDuplicates.length ? weaponDuplicates.join(', ') : '未重复'),
             makeCheck(locationDuplicates.length === 0, 'locations id 是否重复', locationDuplicates.length ? locationDuplicates.join(', ') : '未重复'),
             makeCheck(suspects.length === weapons.length && weapons.length === locations.length && suspects.length > 0, '三类对象数量是否一致', `${suspects.length} / ${weapons.length} / ${locations.length}`),
-            makeCheck(decoded.ok, 'solution 是否可解码为三段 ID', decoded.ok ? decoded.text : decoded.error),
+            makeCheck(decoded.ok, 'solution 是否可解析为三段 ID', decoded.ok ? decoded.text : decoded.error),
             makeCheck(decoded.ok && suspectIds.has(solutionSuspect), 'solution 嫌疑人是否存在', solutionSuspect || '无'),
             makeCheck(decoded.ok && weaponIds.has(solutionWeapon), 'solution 凶器是否存在', solutionWeapon || '无'),
             makeCheck(decoded.ok && locationIds.has(solutionLocation), 'solution 地点是否存在', solutionLocation || '无'),
@@ -295,6 +318,7 @@
 
     global.CleverGridValidator = {
         hasText,
+        parseSolution,
         decodeSolution,
         collectIds,
         findDuplicates,
