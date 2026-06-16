@@ -24,8 +24,14 @@ window.CLEVERGRID_CASE_REGISTRY["midnight-library"] = {
             "历史系学生从来不去地下档案库，因为怕鬼。",
             "暴躁的管理员手里拿着那把拆信刀。",
             "被盗古籍的展示柜是被锋利的利器撬开的。",
-            "拿着沉重字典的人不是收藏家。",
+            "拿着沉重字典的人正是收藏家。",
             "有人在珍本藏书室看到了那个戴眼镜的人。"
+        ],
+        rules: [
+            { id: "R1", type: "notSame", left: "S2", right: "L3", note: "对应线索：历史系学生从来不去地下档案库，因为怕鬼。" },
+            { id: "R2", type: "same", left: "S1", right: "W2", note: "对应线索：暴躁的管理员手里拿着那把拆信刀。" },
+            { id: "R3", type: "same", left: "W1", right: "S3", note: "对应线索：拿着沉重字典的人正是收藏家。" },
+            { id: "R4", type: "same", left: "S1", right: "L1", note: "对应线索：有人在珍本藏书室看到了那个戴眼镜的人。" }
         ],
         solution: "UzEtVzItTDE=",
         // 补充真相：S1(管理员)-W2(拆信刀)-L1(珍本室)[凶手], S2(学生)-W3(台灯)-L2(阅览室), S3(收藏家)-W1(字典)-L3(档案库)

@@ -86,11 +86,30 @@ desc：通往小巷的狭窄走廊，监控角度很差。
 ## clues
 
 ```text
-1. 戴蓝色帽子的人拿着强光手电。
-2. 年轻修复师整晚都待在修复室。
-3. 铜制钥匙出现在后门走廊。
-4. 古董收藏家没有拿强光手电。
-5. 被盗画作最后一次被看到是在主展厅。
+C1. 戴蓝色帽子的人拿着强光手电。
+C2. 年轻修复师整晚都待在修复室。
+C3. 铜制钥匙出现在后门走廊。
+C4. 古董收藏家没有拿强光手电。
+C5. 画框碎片不在主展厅。
+```
+
+## rules
+
+```text
+R1. C1 => S1 与 W2 是同一组。
+R2. C2 => S2 与 L2 是同一组。
+R3. C3 => W1 与 L3 是同一组。
+R4. C4 => S3 与 W2 不是同一组。
+R5. C5 => W3 与 L1 不是同一组。
+```
+
+说明：
+
+```text
+clues 面向玩家展示。
+rules 面向 Validator、Solver 和未来 Editor。
+一个 clue 可以对应多个 rules。
+当前游戏 UI 仍按字符串显示 clues，所以可复制案件文件暂时使用字符串 clues。
 ```
 
 ## fullTruth
@@ -179,7 +198,14 @@ window.CLEVERGRID_CASE_REGISTRY["rainy-museum-theft"] = {
         "年轻修复师整晚都待在修复室。",
         "铜制钥匙出现在后门走廊。",
         "古董收藏家没有拿强光手电。",
-        "被盗画作最后一次被看到是在主展厅。"
+        "画框碎片不在主展厅。"
+    ],
+    rules: [
+        { id: "R1", type: "same", left: "S1", right: "W2", note: "来自 C1" },
+        { id: "R2", type: "same", left: "S2", right: "L2", note: "来自 C2" },
+        { id: "R3", type: "same", left: "W1", right: "L3", note: "来自 C3" },
+        { id: "R4", type: "notSame", left: "S3", right: "W2", note: "来自 C4" },
+        { id: "R5", type: "notSame", left: "W3", right: "L1", note: "来自 C5" }
     ],
     solution: "UzMtVzEtTDM=",
     fullTruth: [

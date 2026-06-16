@@ -13,6 +13,7 @@
             --border: #d8dee6;
             --ok: #1f7a4d;
             --bad: #b3261e;
+            --warn: #b45309;
             --warn-bg: #fff7ed;
             --ok-bg: #eefbf4;
             --bad-bg: #fff1f0;
@@ -105,6 +106,10 @@
             color: var(--bad);
         }
 
+        .summary-value.warn {
+            color: var(--warn);
+        }
+
         .case-list {
             display: grid;
             gap: 14px;
@@ -152,6 +157,11 @@
             color: var(--bad);
         }
 
+        .badge.warn {
+            background: var(--warn-bg);
+            color: var(--warn);
+        }
+
         .checks {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -179,6 +189,11 @@
             background: var(--bad-bg);
         }
 
+        .check.warn {
+            border-color: #fed7aa;
+            background: var(--warn-bg);
+        }
+
         .check-mark {
             display: inline-block;
             width: 22px;
@@ -191,6 +206,10 @@
 
         .check.bad .check-mark {
             color: var(--bad);
+        }
+
+        .check.warn .check-mark {
+            color: var(--warn);
         }
 
         .error-box {
@@ -233,6 +252,7 @@
     <script src="../cases/manifest.js"></script>
     <script src="../src/case-loader.js"></script>
     <script src="../data.js"></script>
+    <script src="../src/solver.js"></script>
     <script src="../src/validator.js"></script>
     <script>
         const { validateCase } = window.CleverGridValidator;
@@ -242,12 +262,14 @@
             const passed = results.filter(result => result.ok).length;
             const failed = total - passed;
             const failedChecks = results.reduce((sum, result) => sum + result.checks.filter(check => !check.ok).length, 0);
+            const warnings = results.reduce((sum, result) => sum + (result.warnings || []).length, 0);
 
             document.getElementById('summary').innerHTML = [
                 ['案件总数', total, ''],
                 ['通过案件', passed, 'ok'],
                 ['失败案件', failed, failed > 0 ? 'bad' : 'ok'],
-                ['失败检查项', failedChecks, failedChecks > 0 ? 'bad' : 'ok']
+                ['失败检查项', failedChecks, failedChecks > 0 ? 'bad' : 'ok'],
+                ['提醒', warnings, warnings > 0 ? 'warn' : 'ok']
             ].map(([label, value, state]) => `
                 <div class="summary-card">
                     <div class="summary-label">${label}</div>
@@ -263,12 +285,22 @@
                         <div>
                             <h2 class="case-title">CASE ${String(result.index + 1).padStart(2, '0')}：${result.title}</h2>
                             <div class="case-meta">
-                                难度：${result.difficulty} · 嫌疑人 ${result.counts.suspects} · 凶器 ${result.counts.weapons} · 地点 ${result.counts.locations} · 线索 ${result.counts.clues}
+                                难度：${result.difficulty} · 嫌疑人 ${result.counts.suspects} · 凶器 ${result.counts.weapons} · 地点 ${result.counts.locations} · 线索 ${result.counts.clues} · Rules ${result.counts.rules}
+                            </div>
+                            <div class="case-meta">
+                                Solver：${result.solver.detail} · 解样例 ${result.solver.solutionCount} · ${result.solver.status === 'unique' ? (result.solver.matchesFullTruth ? '匹配 fullTruth' : '不匹配 fullTruth') : '未进行 fullTruth 对比'}
                             </div>
                         </div>
-                        <div class="badge ${result.ok ? 'ok' : 'bad'}">${result.ok ? '通过' : '有问题'}</div>
+                        <div class="badge ${result.ok ? ((result.warnings || []).length ? 'warn' : 'ok') : 'bad'}">${result.ok ? ((result.warnings || []).length ? '通过，有提醒' : '通过') : '有问题'}</div>
                     </div>
                     <ul class="checks">
+                        ${(result.warnings || []).map(warning => `
+                            <li class="check warn">
+                                <span class="check-mark">!</span>
+                                <strong>${warning.label}</strong>
+                                <div>${warning.detail}</div>
+                            </li>
+                        `).join('')}
                         ${result.checks.map(check => `
                             <li class="check ${check.ok ? 'ok' : 'bad'}">
                                 <span class="check-mark">${check.ok ? '✓' : '×'}</span>

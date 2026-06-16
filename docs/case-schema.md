@@ -24,6 +24,7 @@ window.CLEVERGRID_CASE_REGISTRY["rainy-museum-theft"] = {
     weapons: [],
     locations: [],
     clues: [],
+    rules: [],
     solution: "UzMtVzEtTDM=",
     fullTruth: []
 };
@@ -52,6 +53,7 @@ window.CLEVERGRID_CASE_MANIFEST = [
 | `weapons` | array | 是 | 凶器、道具或关键物品列表。 |
 | `locations` | array | 是 | 地点列表。 |
 | `clues` | array | 是 | 玩家阅读的文字线索列表。 |
+| `rules` | array | 建议必填 | 机器可读的结构化线索，供 Solver、Validator、Editor 使用。没有 rules 时无法进行唯一解校验。 |
 | `fullTruth` | array | 是 | 完整真相表，说明每个嫌疑人对应哪个物品和地点。 |
 | `solution` | string | 是 | 最终结案答案，当前为 `嫌疑人-物品-地点` 的 Base64 编码。 |
 
@@ -117,12 +119,21 @@ rainy-museum-theft
 
 ## clues 写法要求
 
-`clues` 是字符串数组：
+`clues` 面向玩家展示，负责自然语言线索。当前老案件仍兼容字符串数组：
 
 ```js
 clues: [
     "戴蓝色帽子的人拿着强光手电。",
     "年轻修复师整晚都待在修复室。"
+]
+```
+
+未来 Editor/Solver 阶段可以升级为带 `id` 的对象，方便 `rules` 通过 `sourceClueId` 关联：
+
+```js
+clues: [
+    { id: "C1", text: "戴蓝色帽子的人拿着强光手电。" },
+    { id: "C2", text: "年轻修复师整晚都待在修复室。" }
 ]
 ```
 
@@ -133,7 +144,61 @@ clues: [
 - 线索必须和 `fullTruth` 一致。
 - 不要用线索直接重复最终答案，除非是新手教学关。
 - 可以写肯定关系、排除关系、条件关系、二选一关系。
-- Validator 当前只检查结构，不会理解线索语义，也不会判断唯一解。
+- `clues` 只给玩家阅读，不作为 Solver 的直接输入。
+
+## rules 写法要求
+
+`rules` 面向 Solver、Validator 和未来 Editor，负责把自然语言线索转成机器可读的规则。
+
+最小格式：
+
+```js
+rules: [
+    {
+        id: "R1",
+        type: "notSame",
+        left: "S1",
+        right: "L4",
+        sourceClueId: "C1",
+        note: "可选备注"
+    }
+]
+```
+
+字段说明：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `id` | string | 是 | 规则稳定编号，例如 `R1`、`R2`。 |
+| `type` | string | 是 | 当前只允许 `same` 或 `notSame`。 |
+| `left` | string | 是 | 左侧对象 id，可来自 suspects、weapons、locations。 |
+| `right` | string | 是 | 右侧对象 id，可来自 suspects、weapons、locations。 |
+| `sourceClueId` | string | 否 | 对应的 clue id。填写后必须能在 `clues` 中找到。 |
+| `note` | string | 否 | 给维护者或未来 Editor 使用的备注，不参与游戏逻辑。 |
+
+当前支持的规则类型：
+
+```js
+{ type: "same", left: "S1", right: "W2" }
+```
+
+表示 `S1` 与 `W2` 属于同一组真相。
+
+```js
+{ type: "notSame", left: "W1", right: "L3" }
+```
+
+表示 `W1` 与 `L3` 不属于同一组真相。
+
+规则要求：
+
+- `left` 和 `right` 必须存在于 suspects、weapons、locations。
+- `left` 和 `right` 不能来自同一分类。
+- 一条 `clue` 可以对应多条 `rules`。
+- `rules` 必须与 `fullTruth` 一致。
+- 本阶段只支持 `same` / `notSame`，暂不设计复杂条件规则。
+- 当前游戏 UI 仍按字符串显示 clues，所以正式可玩的案件暂时应继续使用字符串 clues。
+- 当前 5 个正式案件已经包含 `rules`；未来新增案件也应包含 `rules`。
 
 ## fullTruth 写法要求
 
@@ -190,10 +255,11 @@ solution: "UzMtVzEtTDM="
 1. 复制 `docs/example-case.md` 的可复制案件内容。
 2. 新建 `cases/xxx.js`，其中 `xxx` 必须等于案件 `id`。
 3. 修改案件内容。
-4. 在 `cases/manifest.js` 中加入案件 id。
-5. 打开 `tools/validator.html` 校验。
-6. 打开 `index.html` 手动试玩。
-7. 能正常破案后再发布。
+4. 为自然语言 `clues` 补充机器可读 `rules`。
+5. 在 `cases/manifest.js` 中加入案件 id。
+6. 打开 `tools/validator.html` 校验。
+7. 打开 `index.html` 手动试玩。
+8. 能正常破案后再发布。
 
 ## Validator 检查范围
 
@@ -214,11 +280,22 @@ Validator 当前检查：
 - fullTruth 是否完整。
 - solution 是否对应到 fullTruth。
 - clues 数量是否大于 0。
+- rules 是否存在；当前没有 rules 只给 warning。
+- rules 是否为数组。
+- rule id 是否存在且不重复。
+- rule type 是否为 same / notSame。
+- rule left / right 是否存在于 suspects / weapons / locations。
+- rule left / right 是否来自不同分类。
+- rule sourceClueId 如果存在，是否能在 clues 中找到。
+- rule 是否与 fullTruth 一致。
+- Solver 是否能基于 rules 找到解。
+- Solver 是否唯一解；本阶段多解显示为 warning。
+- Solver 唯一解是否与 fullTruth 完全一致。
 
 Validator 暂不检查：
 
 - 线索语义是否正确。
-- 谜题是否唯一解。
+- 条件关系、二选一关系等复杂规则。
 - 文案是否自然。
 - 难度是否合理。
 
@@ -261,6 +338,11 @@ window.CLEVERGRID_CASE_REGISTRY["rainy-museum-theft"] = {
         "戴蓝色帽子的人拿着强光手电。",
         "年轻修复师整晚都待在修复室。",
         "铜制钥匙出现在后门走廊。"
+    ],
+    rules: [
+        { id: "R1", type: "same", left: "S1", right: "W2", note: "来自第 1 条 clue" },
+        { id: "R2", type: "same", left: "S2", right: "L2", note: "来自第 2 条 clue" },
+        { id: "R3", type: "same", left: "W1", right: "L3", note: "来自第 3 条 clue" }
     ],
     solution: "UzMtVzEtTDM=",
     fullTruth: [

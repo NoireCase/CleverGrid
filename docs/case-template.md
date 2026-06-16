@@ -15,8 +15,9 @@
 7. 凶器/道具 weapons
 8. 地点 locations
 9. 线索 clues
-10. 完整真相 fullTruth
-11. 最终答案 solution
+10. 结构化规则 rules
+11. 完整真相 fullTruth
+12. 最终答案 solution
 
 ## 推荐设计顺序
 
@@ -32,8 +33,9 @@
 6. 从 fullTruth 中选择一行作为 solution 原文。
 7. 将 solution 原文转成 Base64，写入 `solution` 字段。
 8. 围绕 fullTruth 编写 clues。
-9. 打开 `tools/validator.html` 校验。
-10. 打开 `index.html` 手动试玩。
+9. 把 clues 转成机器可读的 rules。
+10. 打开 `tools/validator.html` 校验。
+11. 打开 `index.html` 手动试玩。
 
 原则：真相决定线索。不要先写线索，再拼凑真相。
 
@@ -142,7 +144,75 @@ version: 1
 - 每条线索尽量只表达一个重点。
 - 线索必须和 fullTruth 一致。
 - 不要直接写最终答案，除非是新手教学关。
-- Validator 当前不会理解线索语义，也不会判断唯一解，必须手动试玩。
+- clues 面向玩家展示，可以写得自然、有剧情感。
+- Validator 不会直接理解 clues 的自然语言语义；未来 Solver 会读取 rules。
+
+当前老案件仍可使用字符串线索：
+
+```js
+clues: [
+    "园丁拿着铜钥匙。"
+]
+```
+
+未来 Editor/Solver 阶段可以升级为带 id 的写法：
+
+```js
+clues: [
+    { id: "C1", text: "园丁拿着铜钥匙。" }
+]
+```
+
+## rules 写法要求
+
+rules 是给 Validator、Solver 和未来 Editor 使用的结构化线索。
+
+推荐格式：
+
+```js
+rules: [
+    {
+        id: "R1",
+        type: "same",
+        left: "S1",
+        right: "W1",
+        sourceClueId: "C1",
+        note: "可选备注"
+    }
+]
+```
+
+当前只支持两种 `type`：
+
+- `same`：left 和 right 属于同一组真相。
+- `notSame`：left 和 right 不属于同一组真相。
+
+示例：
+
+```js
+{ id: "R1", type: "same", left: "S1", right: "W2", sourceClueId: "C1" }
+```
+
+含义：`S1` 使用 `W2`。
+
+```js
+{ id: "R2", type: "notSame", left: "W1", right: "L3", sourceClueId: "C2" }
+```
+
+含义：`W1` 不在 `L3`。
+
+填写要求：
+
+- 每条 rule 必须有 id。
+- rule id 不能重复。
+- `left` / `right` 必须存在于 suspects、weapons、locations。
+- `left` / `right` 不能来自同一分类。
+- `sourceClueId` 如果填写，必须对应一条 clue 的 id。
+- 一条 clue 可以对应多条 rules。
+- rules 必须与 fullTruth 一致。
+- 当前老案件可以暂时没有 rules，但 Validator 会显示 warning。
+- 未来新增案件应包含 rules，方便后续唯一解校验。
+- 当前游戏 UI 仍按字符串显示 clues，所以正式可玩的案件暂时应继续使用字符串 clues；`sourceClueId` 可以等 UI 兼容 clue id 后再填写。
 
 ## fullTruth 写法要求
 
@@ -203,6 +273,7 @@ window.CLEVERGRID_CASE_REGISTRY["rainy-museum-theft"] = {
     weapons: [],
     locations: [],
     clues: [],
+    rules: [],
     solution: "UzMtVzEtTDM=",
     fullTruth: []
 };
@@ -218,16 +289,17 @@ flowchart TD
     D --> E["编写 fullTruth"]
     E --> F["选择 solution"]
     F --> G["编写 clues"]
-    G --> H["登记 cases/manifest.js"]
-    H --> I["打开 tools/validator.html"]
-    I --> J{"是否全部通过"}
-    J -->|否| K["修正案件文件"]
-    K --> I
-    J -->|是| L["打开 index.html 试玩"]
-    L --> M{"是否能正常破案"}
-    M -->|否| N["调整线索或真相"]
-    N --> I
-    M -->|是| O["案件可以发布"]
+    G --> H["编写 rules"]
+    H --> I["登记 cases/manifest.js"]
+    I --> J["打开 tools/validator.html"]
+    J --> K{"是否全部通过"}
+    K -->|否| L["修正案件文件"]
+    L --> J
+    K -->|是| M["打开 index.html 试玩"]
+    M --> N{"是否能正常破案"}
+    N -->|否| O["调整线索或真相"]
+    O --> J
+    N -->|是| P["案件可以发布"]
 ```
 
 ## Validator 会检查什么
@@ -247,6 +319,14 @@ flowchart TD
 - fullTruth 是否完整。
 - solution 是否对应到 fullTruth。
 - clues 数量是否大于 0。
+- rules 是否存在；当前没有 rules 只给 warning。
+- rules 是否为数组。
+- rule id 是否存在且不重复。
+- rule type 是否为 same / notSame。
+- rule left / right 是否存在于 suspects / weapons / locations。
+- rule left / right 是否来自不同分类。
+- rule sourceClueId 如果存在，是否能在 clues 中找到。
+- rule 是否与 fullTruth 一致。
 
 ## 最后检查清单
 
@@ -260,5 +340,6 @@ flowchart TD
 - fullTruth 完整。
 - solution 解码后来自 fullTruth。
 - clues 至少 1 条，且不与真相矛盾。
+- 新增案件应包含 rules，且 rules 与 fullTruth 一致。
 - `tools/validator.html` 全部通过。
 - `index.html` 可以试玩并破案。

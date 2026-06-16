@@ -34,6 +34,16 @@ window.CLEVERGRID_CASE_REGISTRY["inui-juice-poisoning"] = {
             "待在社办里的人不是不二周助。",
             "特制乾汁要么在不二周助手里，要么就在社办里（只能是其中一种情况）。"
         ],
+        rules: [
+            { id: "R1", type: "same", left: "S1", right: "L4", note: "对应线索：越前龙马正在天台休息。" },
+            { id: "R2", type: "notSame", left: "W4", right: "S1", note: "对应线索：拿特制乾汁的人不是越前龙马。" },
+            { id: "R3", type: "notSame", left: "S4", right: "L1", note: "对应线索：不二周助绝对不在网球场。" },
+            { id: "R4", type: "same", left: "W2", right: "L1", note: "对应线索：蓝色球拍被遗忘在了网球场。" },
+            { id: "R5", type: "same", left: "S2", right: "W2", note: "对应线索：手冢国光使用的是蓝色球拍。" },
+            { id: "R6", type: "same", left: "W3", right: "L3", note: "对应线索：拿着绷带的人正在更衣室里。" },
+            { id: "R7", type: "notSame", left: "S3", right: "W1", note: "对应线索：乾贞治手里拿的不是红色球拍。" },
+            { id: "R8", type: "notSame", left: "L2", right: "S4", note: "对应线索：待在社办里的人不是不二周助。" }
+        ],
         solution: "UzMtVzQtTDI=", // 乾贞治-乾汁-社办
         // 补充真相：
         // S1(龙马)-W1(红球拍)-L4(天台)

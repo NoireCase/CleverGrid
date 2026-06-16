@@ -41,6 +41,157 @@
         return { ok, label, detail: detail || '' };
     }
 
+    function makeWarning(label, detail) {
+        return { level: 'warning', label, detail: detail || '' };
+    }
+
+    function getItemCategory(id, suspectIds, weaponIds, locationIds) {
+        if (suspectIds.has(id)) return 'suspects';
+        if (weaponIds.has(id)) return 'weapons';
+        if (locationIds.has(id)) return 'locations';
+        return '';
+    }
+
+    function collectClueIds(clues) {
+        return new Set(clues
+            .map(clue => clue && typeof clue === 'object' ? clue.id : '')
+            .filter(Boolean));
+    }
+
+    function idsShareTruthRow(left, right, fullTruth) {
+        return fullTruth.some(row => Array.isArray(row) && row.includes(left) && row.includes(right));
+    }
+
+    function solutionMatchesFullTruth(solutionRows, fullTruth) {
+        if (!Array.isArray(solutionRows) || !Array.isArray(fullTruth) || solutionRows.length !== fullTruth.length) {
+            return false;
+        }
+
+        const expected = new Set(fullTruth
+            .filter(row => Array.isArray(row) && row.length === 3)
+            .map(row => row.join('|')));
+        const actual = new Set(solutionRows.map(row => [row.suspect, row.weapon, row.location].join('|')));
+
+        if (expected.size !== actual.size) return false;
+        return Array.from(expected).every(rowKey => actual.has(rowKey));
+    }
+
+    function makeSkippedSolverResult(detail) {
+        return {
+            status: 'skipped',
+            solutionCount: 0,
+            matchesFullTruth: false,
+            detail,
+            errors: [],
+            warnings: []
+        };
+    }
+
+    function validateSolver(item, fullTruth) {
+        if (!global.CleverGridSolver || typeof global.CleverGridSolver.solveCase !== 'function') {
+            return {
+                solverResult: makeSkippedSolverResult('未加载 src/solver.js'),
+                checks: [],
+                warnings: [makeWarning('Solver 是否已加载', '未加载 src/solver.js，无法进行唯一解校验。')]
+            };
+        }
+
+        const result = global.CleverGridSolver.solveCase(item);
+        const checks = [];
+        const warnings = [];
+        const statusText = {
+            unique: '唯一解',
+            multiple: '多解',
+            none: '无解',
+            invalid: '输入无效'
+        }[result.status] || result.status;
+
+        checks.push(makeCheck(result.status !== 'invalid', 'Solver 输入是否有效', result.errors.length ? result.errors.join('；') : statusText));
+        checks.push(makeCheck(result.status !== 'none', 'Solver 是否有解', statusText));
+
+        if (result.status === 'multiple') {
+            warnings.push(makeWarning('Solver 是否唯一解', `当前 rules 可推出多个解，已找到 ${result.solutionCount} 个样例。`));
+        } else {
+            checks.push(makeCheck(result.status === 'unique', 'Solver 是否唯一解', statusText));
+        }
+
+        const matchesFullTruth = result.status === 'unique'
+            && solutionMatchesFullTruth(result.solutions[0], fullTruth);
+
+        if (result.status === 'unique') {
+            checks.push(makeCheck(matchesFullTruth, 'Solver 唯一解是否匹配 fullTruth', matchesFullTruth ? '完全一致' : 'Solver 唯一解与 fullTruth 不一致'));
+        }
+
+        return {
+            solverResult: {
+                status: result.status,
+                solutionCount: result.solutionCount,
+                matchesFullTruth,
+                detail: statusText,
+                errors: result.errors,
+                warnings: result.warnings
+            },
+            checks,
+            warnings
+        };
+    }
+
+    function validateRules(item, context) {
+        const warnings = [];
+        const checks = [];
+        const rulesExists = Object.prototype.hasOwnProperty.call(item || {}, 'rules');
+
+        if (!rulesExists) {
+            warnings.push(makeWarning('rules 是否存在', '当前案件尚未配置 rules，无法进行推理唯一性校验。'));
+            return { checks, warnings, count: 0 };
+        }
+
+        const rules = item.rules;
+        checks.push(makeCheck(Array.isArray(rules), 'rules 是否为数组', Array.isArray(rules) ? `${rules.length} 条 rules` : 'rules 必须是数组'));
+
+        if (!Array.isArray(rules)) {
+            return { checks, warnings, count: 0 };
+        }
+
+        const ruleIds = rules.map(rule => rule && rule.id).filter(Boolean);
+        const duplicateRuleIds = findDuplicates(ruleIds);
+        const allowedTypes = new Set(['same', 'notSame']);
+        const objectIds = new Set([
+            ...context.suspectIds,
+            ...context.weaponIds,
+            ...context.locationIds
+        ]);
+        const clueIds = collectClueIds(context.clues);
+
+        checks.push(makeCheck(rules.every(rule => hasText(rule && rule.id)), 'rule id 是否存在', `${ruleIds.length} / ${rules.length}`));
+        checks.push(makeCheck(duplicateRuleIds.length === 0, 'rule id 是否重复', duplicateRuleIds.length ? duplicateRuleIds.join(', ') : '未重复'));
+
+        rules.forEach((rule, ruleIndex) => {
+            const labelPrefix = hasText(rule && rule.id) ? rule.id : `第 ${ruleIndex + 1} 条 rule`;
+            const left = rule && rule.left;
+            const right = rule && rule.right;
+            const leftCategory = getItemCategory(left, context.suspectIds, context.weaponIds, context.locationIds);
+            const rightCategory = getItemCategory(right, context.suspectIds, context.weaponIds, context.locationIds);
+            const hasValidType = allowedTypes.has(rule && rule.type);
+            const hasValidLeft = objectIds.has(left);
+            const hasValidRight = objectIds.has(right);
+            const hasDifferentCategories = hasValidLeft && hasValidRight && leftCategory !== rightCategory;
+            const hasSourceClueId = hasText(rule && rule.sourceClueId);
+            const hasRuleContext = hasValidType && hasDifferentCategories && context.fullTruthRowsValid;
+            const sameTruthRow = hasRuleContext ? idsShareTruthRow(left, right, context.fullTruth) : false;
+            const truthOk = !hasRuleContext || (rule.type === 'same' ? sameTruthRow : !sameTruthRow);
+
+            checks.push(makeCheck(hasValidType, `${labelPrefix} type 是否合法`, hasValidType ? rule.type : '只允许 same / notSame'));
+            checks.push(makeCheck(hasValidLeft, `${labelPrefix} left 是否存在`, left || '缺少 left'));
+            checks.push(makeCheck(hasValidRight, `${labelPrefix} right 是否存在`, right || '缺少 right'));
+            checks.push(makeCheck(hasDifferentCategories, `${labelPrefix} left/right 是否跨分类`, hasDifferentCategories ? `${leftCategory} / ${rightCategory}` : 'left 和 right 不能来自同一分类'));
+            checks.push(makeCheck(!hasSourceClueId || clueIds.has(rule.sourceClueId), `${labelPrefix} sourceClueId 是否存在`, hasSourceClueId ? rule.sourceClueId : '未填写，可选'));
+            checks.push(makeCheck(truthOk, `${labelPrefix} 是否与 fullTruth 一致`, hasRuleContext ? `${rule.type}: ${left} / ${right}` : '等待基础字段通过后校验'));
+        });
+
+        return { checks, warnings, count: rules.length };
+    }
+
     function validateCase(item, index, allCases) {
         const suspects = Array.isArray(item && item.suspects) ? item.suspects : [];
         const weapons = Array.isArray(item && item.weapons) ? item.weapons : [];
@@ -73,6 +224,14 @@
             if (!Array.isArray(row) || row.length !== 3) return false;
             return row[0] === solutionSuspect && row[1] === solutionWeapon && row[2] === solutionLocation;
         });
+        const rulesResult = validateRules(item, {
+            clues,
+            fullTruth,
+            fullTruthRowsValid,
+            suspectIds,
+            weaponIds,
+            locationIds
+        });
 
         const checks = [
             makeCheck(hasText(item && item.id), 'case id 是否存在', hasText(item && item.id) ? item.id : '缺少 id'),
@@ -97,7 +256,23 @@
             makeCheck(fullTruth.length > 0 && fullTruthRowsValid, 'fullTruth 每行 ID 是否有效', `${fullTruth.length} 行`),
             makeCheck(fullTruthComplete, 'fullTruth 是否完整', `${fullTruth.length} / ${suspects.length} 行`),
             makeCheck(solutionInFullTruth, 'solution 是否对应到 fullTruth', decoded.ok ? decoded.text : decoded.error),
-            makeCheck(clues.length > 0, 'clue 数量是否大于 0', `${clues.length} 条线索`)
+            makeCheck(clues.length > 0, 'clue 数量是否大于 0', `${clues.length} 条线索`),
+            ...rulesResult.checks
+        ];
+        const solverValidation = checks.every(check => check.ok)
+            ? validateSolver(item, fullTruth)
+            : {
+                solverResult: makeSkippedSolverResult('基础结构或 rules 存在错误，已跳过 Solver。'),
+                checks: [],
+                warnings: []
+            };
+        const allChecks = [
+            ...checks,
+            ...solverValidation.checks
+        ];
+        const allWarnings = [
+            ...rulesResult.warnings,
+            ...solverValidation.warnings
         ];
 
         return {
@@ -108,10 +283,13 @@
                 suspects: suspects.length,
                 weapons: weapons.length,
                 locations: locations.length,
-                clues: clues.length
+                clues: clues.length,
+                rules: rulesResult.count
             },
-            checks,
-            ok: checks.every(check => check.ok)
+            checks: allChecks,
+            warnings: allWarnings,
+            solver: solverValidation.solverResult,
+            ok: allChecks.every(check => check.ok)
         };
     }
 
@@ -120,6 +298,8 @@
         decodeSolution,
         collectIds,
         findDuplicates,
+        validateRules,
+        validateSolver,
         validateCase
     };
 })(globalThis);

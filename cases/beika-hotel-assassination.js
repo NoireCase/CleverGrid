@@ -42,6 +42,19 @@ window.CLEVERGRID_CASE_REGISTRY["beika-hotel-assassination"] = {
             "关键线索：如果小兰在饭店天台，那么狙击枪也一定在饭店天台。",
             "柯南正在侦探所里思考案情。"
         ],
+        rules: [
+            { id: "R1", type: "notSame", left: "S5", right: "L1", note: "对应线索：琴酒绝对不在侦探所。" },
+            { id: "R2", type: "notSame", left: "S2", right: "W5", note: "对应线索：小兰没有拿狙击枪。" },
+            { id: "R3", type: "notSame", left: "L3", right: "W2", note: "对应线索：在饭店天台的人手里没有空手道技能。" },
+            { id: "R4", type: "same", left: "S1", right: "W1", note: "对应线索：柯南戴着追踪眼镜。" },
+            { id: "R5", type: "same", left: "L2", right: "W3", note: "对应线索：在咖啡厅的人正在喝啤酒。" },
+            { id: "R6", type: "same", left: "S3", right: "L2", note: "对应线索：毛利小五郎就在咖啡厅。" },
+            { id: "R7", type: "same", left: "S4", right: "W4", note: "对应线索：服部平次带着武士刀。" },
+            { id: "R8", type: "same", left: "L5", right: "W4", note: "对应线索：东都铁塔那里发现了武士刀的痕迹。" },
+            { id: "R9", type: "notSame", left: "S2", right: "L1", note: "对应线索：小兰不在侦探所。" },
+            { id: "R10", type: "notSame", left: "S5", right: "W2", note: "对应线索：琴酒不会空手道。" },
+            { id: "R11", type: "same", left: "S1", right: "L1", note: "对应线索：柯南正在侦探所里思考案情。" }
+        ],
         solution: "UzUtVzUtTDM=", // 琴酒-狙击枪-天台
         // 补充真相：
         // S1(柯南)-W1(眼镜)-L1(侦探所)

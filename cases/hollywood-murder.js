@@ -27,6 +27,12 @@ window.CLEVERGRID_CASE_REGISTRY["hollywood-murder"] = {
             "奥比斯迪亚夫人被发现躲在红色天鹅绒座椅下。",
             "尸体是在一个大理石浴缸内被发现的。"
         ],
+        rules: [
+            { id: "R1", type: "notSame", left: "A", right: "FORK", note: "对应线索：神奇的奥瑞林信任持有餐叉的嫌疑人。" },
+            { id: "R2", type: "same", left: "B", right: "PIPE", note: "对应线索：洛基克赶到时，米德耐特三世还在挥舞铅管。" },
+            { id: "R3", type: "notSame", left: "CANDLE", right: "BED", note: "对应线索：卧室里没发现颇有分量的蜡烛。" },
+            { id: "R4", type: "same", left: "C", right: "THEATER", note: "对应线索：奥比斯迪亚夫人被发现躲在红色天鹅绒座椅下。" }
+        ],
         solution: "QS1DQU5ETEUtQkFUSA==",
         // 补充真相：A(奥瑞林)-CANDLE-BATH, B(米德耐特)-PIPE-BED, C(奥比斯迪亚)-FORK-THEATER
         fullTruth: [
