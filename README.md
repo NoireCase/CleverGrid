@@ -88,8 +88,11 @@ CleverGrid/
 │   └── uploader.html          AI 案件 JSON 上传校验工具
 ├── tests/
 │   ├── phase5.2-uploader-solver.test.js
-│   └── phase5.3-case-library.test.js
+│   ├── phase5.3-case-library.test.js
+│   ├── phase5.3.3-bad-cases.test.js
+│   └── bad-cases/              故意错误的案件测试集
 ├── docs/
+│   ├── ai-case-generation.md   AI 案件生成规范
 │   ├── case-schema.md         案件数据格式规范
 │   ├── case-template.md       案件编写规范
 │   └── example-case.md        示例案件模板
@@ -126,7 +129,7 @@ Solver 验证唯一解
 具体说明：
 
 1. 先阅读 `docs/case-schema.md`，确认字段格式和 Case Uploader 输出格式。
-2. 让 AI 生成案件 JSON，案件 ID 可以留空或使用临时值。
+2. 使用 `docs/ai-case-generation.md` 作为 AI 生成案件 JSON 的统一规范，案件 ID 可以留空或使用临时值。
 3. 打开 `tools/uploader.html`。
 4. 粘贴 JSON 或上传任意名称的 `.json` 文件。
 5. 确认 JSON 解析、格式校验、答案校验、唯一解验证全部通过。
@@ -137,7 +140,7 @@ Solver 验证唯一解
 
 维护者新增案件时，建议先设计完整真相，再编写线索。不要先写线索，再拼凑答案。
 
-`clues` 面向玩家展示，可以写成自然语言；`rules` 面向 Validator、未来 Solver 和 Case Uploader，是机器可读的结构化线索。当前游戏仍按字符串显示 `clues`，所以新增可玩案件暂时应继续使用字符串线索；5 个正式案件已经配置 `rules`。
+`clues` 面向玩家展示，可以写成自然语言；`rules` 面向 Validator、Solver 和 Case Uploader，是机器可读的结构化线索。当前游戏仍按字符串显示 `clues`，所以新增可玩案件暂时应继续使用字符串线索；5 个正式案件已经配置 `rules`。
 
 ## 案件校验工具
 
@@ -177,6 +180,23 @@ tools/validator.html
 - Solver 唯一解是否与 fullTruth 完全一致
 
 每次新增或修改案件后，都应该先运行校验工具，再试玩。
+
+## 测试
+
+项目当前包含两类测试：
+
+- 正常流程测试：确认 Uploader、Solver、Case Library 的正常功能不回退。
+- 错误案件测试：确认明显错误的案件不会被 Validator、Solver 或 Uploader 放行。
+
+当前测试命令：
+
+```text
+node tests/phase5.2-uploader-solver.test.js
+node tests/phase5.3-case-library.test.js
+node tests/phase5.3.3-bad-cases.test.js
+```
+
+`tests/bad-cases/` 中的 JSON 文件都是故意写错的案件，用来防止未来修改规则系统时漏检。
 
 ## Case Uploader
 

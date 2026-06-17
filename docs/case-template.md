@@ -135,8 +135,6 @@ version: 1
 - 某人对应某地：例如“厨师一直待在厨房。”
 - 某物对应某地：例如“银色手电筒出现在仓库。”
 - 排除关系：例如“戴眼镜的人不在花园。”
-- 条件关系：例如“如果管家在大厅，那么烛台也在大厅。”
-- 二选一关系：例如“红围巾的人要么在阁楼，要么拿着手套。”
 
 填写要求：
 
@@ -145,7 +143,8 @@ version: 1
 - 线索必须和 fullTruth 一致。
 - 不要直接写最终答案，除非是新手教学关。
 - clues 面向玩家展示，可以写得自然、有剧情感。
-- Validator 不会直接理解 clues 的自然语言语义；未来 Solver 会读取 rules。
+- Validator 不会直接理解 clues 的自然语言语义；当前 Solver 只读取 `rules`。
+- 当前正式案件不要依赖条件关系、二选一关系、前后顺序或相邻关系，除非它们已经被拆成 `same` / `notSame` rules。
 
 当前格式仍可使用字符串线索：
 
@@ -268,30 +267,31 @@ solution: {
 }
 ```
 
-旧版 Base64 字符串仍可被读取，但新案件和 Uploader 都应使用对象格式。
+新案件和 Uploader 都必须使用对象格式。
+不要使用旧数组格式或旧版 Base64 字符串。
 
 ## 当前案件文件模板
 
-```js
-window.CLEVERGRID_CASE_REGISTRY = window.CLEVERGRID_CASE_REGISTRY || {};
-window.CLEVERGRID_CASE_REGISTRY["rainy-museum-theft"] = {
-    id: "rainy-museum-theft",
-    version: 1,
-    title: "雨夜美术馆失窃案",
-    difficulty: "入门级",
-    intro: "暴雨之夜，美术馆最珍贵的一幅画作不翼而飞。",
-    suspects: [],
-    weapons: [],
-    locations: [],
-    clues: [],
-    rules: [],
-    solution: {
-        suspect: "S3",
-        weapon: "W1",
-        location: "L3"
-    },
-    fullTruth: []
-};
+这是提交给 Uploader 的草稿 JSON。正式 `id` 和文件名会在加入案件库时自动生成。
+
+```json
+{
+  "version": 1,
+  "title": "雨夜美术馆失窃案",
+  "difficulty": "入门级",
+  "intro": "暴雨之夜，美术馆最珍贵的一幅画作不翼而飞。",
+  "suspects": [],
+  "weapons": [],
+  "locations": [],
+  "clues": [],
+  "rules": [],
+  "solution": {
+    "suspect": "S3",
+    "weapon": "W1",
+    "location": "L3"
+  },
+  "fullTruth": []
+}
 ```
 
 ## 新增案件标准流程

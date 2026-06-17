@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "title": "Missing Solution",
+  "difficulty": "test",
+  "intro": "Bad case: missing solution.",
+  "suspects": [
+    { "id": "S1", "name": "Suspect 1" },
+    { "id": "S2", "name": "Suspect 2" },
+    { "id": "S3", "name": "Suspect 3" }
+  ],
+  "weapons": [
+    { "id": "W1", "name": "Weapon 1" },
+    { "id": "W2", "name": "Weapon 2" },
+    { "id": "W3", "name": "Weapon 3" }
+  ],
+  "locations": [
+    { "id": "L1", "name": "Location 1" },
+    { "id": "L2", "name": "Location 2" },
+    { "id": "L3", "name": "Location 3" }
+  ],
+  "clues": [
+    "S1 has W1.",
+    "S1 is at L1.",
+    "S2 has W2.",
+    "S2 is at L2."
+  ],
+  "rules": [
+    { "id": "R1", "type": "same", "left": "S1", "right": "W1" },
+    { "id": "R2", "type": "same", "left": "S1", "right": "L1" },
+    { "id": "R3", "type": "same", "left": "S2", "right": "W2" },
+    { "id": "R4", "type": "same", "left": "S2", "right": "L2" }
+  ],
+  "fullTruth": [
+    ["S1", "W1", "L1"],
+    ["S2", "W2", "L2"],
+    ["S3", "W3", "L3"]
+  ]
+}
