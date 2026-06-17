@@ -240,7 +240,7 @@
         <div class="topbar">
             <div>
                 <h1>CleverGrid 案件数据校验工具</h1>
-                <p class="subtitle">读取 data.js 中的 GAME_DATA，检查案件基础数据是否完整。</p>
+                <p class="subtitle">读取 case-index.json 和 cases/*.json，检查案件基础数据是否完整。</p>
             </div>
             <a class="home-link" href="../index.html">返回游戏首页</a>
         </div>
@@ -249,9 +249,7 @@
         <section class="case-list" id="case-list"></section>
     </main>
 
-    <script src="../cases/manifest.js"></script>
-    <script src="../src/case-loader.js"></script>
-    <script src="../data.js"></script>
+    <script src="../src/case-library.js"></script>
     <script src="../src/solver.js"></script>
     <script src="../src/validator.js"></script>
     <script>
@@ -323,15 +321,9 @@
             `;
         }
 
-        function initValidator() {
-            if (!Array.isArray(window.GAME_DATA) && typeof GAME_DATA === 'undefined') {
-                renderLoadError('没有读取到 GAME_DATA。请确认 validator.html 与 data.js 的相对路径是否正确。');
-                return;
-            }
-
-            const data = Array.isArray(window.GAME_DATA) ? window.GAME_DATA : GAME_DATA;
+        function initValidator(data) {
             if (!Array.isArray(data)) {
-                renderLoadError('GAME_DATA 不是数组。');
+                renderLoadError('案件库读取结果不是数组。');
                 return;
             }
 
@@ -340,14 +332,13 @@
             renderCases(results);
         }
 
-        window.CleverGridCaseLoader.load({ basePath: '../cases/' })
-            .then(() => {
-                window.CleverGridData.install();
-                initValidator();
+        window.CleverGridCaseLibrary.loadCases({ indexPath: '../case-index.json' })
+            .then(({ cases }) => {
+                initValidator(cases);
             })
             .catch(error => {
                 console.error(error);
-                renderLoadError('案件脚本加载失败。请确认 cases/manifest.js 和案件文件是否一致。');
+                renderLoadError('案件库读取失败。请确认 case-index.json 和 cases/*.json 是否一致。');
             });
     </script>
 </body>

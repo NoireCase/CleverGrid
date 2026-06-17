@@ -2,22 +2,21 @@
 
 这份文档用于指导维护者新增案件。完整字段定义见 [case-schema.md](case-schema.md)，可复制示例见 [example-case.md](example-case.md)。
 
-当前项目的案件不再集中写在 `data.js` 中。每个案件都应该放在 `cases/` 下的独立 JS 文件里，并在 `cases/manifest.js` 中登记。
+当前项目的正式案件存放在 `cases/case-xxx.json` 中，并由 `case-index.json` 统一管理。新增案件应先通过 `tools/uploader.html` 校验，再加入案件库。
 
 ## 新增案件只需要关心的内容
 
-1. 案件 id
-2. version
-3. 案件标题 title
-4. 难度 difficulty
-5. 开场描述 intro
-6. 嫌疑人 suspects
-7. 凶器/道具 weapons
-8. 地点 locations
-9. 线索 clues
-10. 结构化规则 rules
-11. 完整真相 fullTruth
-12. 最终答案 solution
+1. version
+2. 案件标题 title
+3. 难度 difficulty
+4. 开场描述 intro
+5. 嫌疑人 suspects
+6. 凶器/道具 weapons
+7. 地点 locations
+8. 线索 clues
+9. 结构化规则 rules
+10. 完整真相 fullTruth
+11. 最终答案 solution
 
 ## 推荐设计顺序
 
@@ -26,33 +25,34 @@
 推荐顺序：
 
 1. 确定案件主题和标题。
-2. 确定案件 id，例如 `rainy-museum-theft`。
-3. 选择人数规模：3 人、4 人或 5 人。
-4. 填写 suspects、weapons、locations。
-5. 先写 fullTruth，确定每个人、每件物品、每个地点的真实组合。
-6. 从 fullTruth 中选择一行作为 `solution`。
-7. 按 `{ suspect, weapon, location }` 写入 `solution` 字段。
-8. 围绕 fullTruth 编写 clues。
-9. 把 clues 转成机器可读的 rules。
-10. 打开 `tools/validator.html` 校验。
+2. 选择人数规模：3 人、4 人或 5 人。
+3. 填写 suspects、weapons、locations。
+4. 先写 fullTruth，确定每个人、每件物品、每个地点的真实组合。
+5. 从 fullTruth 中选择一行作为 `solution`。
+6. 按 `{ suspect, weapon, location }` 写入 `solution` 字段。
+7. 围绕 fullTruth 编写 clues。
+8. 把 clues 转成机器可读的 rules。
+9. 打开 `tools/uploader.html` 校验并加入案件库。
+10. 打开 `tools/validator.html` 校验正式案件库。
 11. 打开 `index.html` 手动试玩。
 
 原则：真相决定线索。不要先写线索，再拼凑真相。
 
 ## id 命名规则
 
-案件 id 使用小写英文和短横线：
+正式案件 id 由系统自动生成，格式固定为：
 
 ```text
-rainy-museum-theft
+case-001
 ```
 
 要求：
 
-- 只使用小写英文字母、数字和英文短横线 `-`。
-- 不使用中文、空格、下划线或标点。
-- 文件名、注册表 key、manifest 条目必须一致。
-- 案件发布后不要修改 id，否则旧存档会失去对应关系。
+- 固定 `case-` 前缀。
+- 数字固定三位。
+- 自动递增。
+- 不需要用户手动填写。
+- 不允许重复。
 
 对象 id 建议：
 
@@ -155,7 +155,7 @@ clues: [
 ]
 ```
 
-未来 Editor/Solver 阶段可以升级为带 id 的写法：
+未来 Uploader/Solver 阶段可以升级为带 id 的写法：
 
 ```js
 clues: [
@@ -165,7 +165,7 @@ clues: [
 
 ## rules 写法要求
 
-rules 是给 Validator、Solver 和未来 Editor 使用的结构化线索。
+rules 是给 Validator、Solver 和 Uploader 使用的结构化线索。
 
 推荐格式：
 
@@ -268,7 +268,7 @@ solution: {
 }
 ```
 
-旧版 Base64 字符串仍可被读取，但新案件和 Editor 都应使用对象格式。
+旧版 Base64 字符串仍可被读取，但新案件和 Uploader 都应使用对象格式。
 
 ## 当前案件文件模板
 
@@ -298,14 +298,14 @@ window.CLEVERGRID_CASE_REGISTRY["rainy-museum-theft"] = {
 
 ```mermaid
 flowchart TD
-    A["确定案件主题"] --> B["选择 id 和 version"]
-    B --> C["新建 cases/xxx.js"]
-    C --> D["填写 suspects/weapons/locations"]
-    D --> E["编写 fullTruth"]
-    E --> F["选择 solution"]
-    F --> G["编写 clues"]
-    G --> H["编写 rules"]
-    H --> I["登记 cases/manifest.js"]
+    A["确定案件主题"] --> B["填写 version"]
+    B --> C["填写 suspects/weapons/locations"]
+    C --> D["编写 fullTruth"]
+    D --> E["选择 solution"]
+    E --> F["编写 clues"]
+    F --> G["编写 rules"]
+    G --> H["打开 tools/uploader.html"]
+    H --> I["加入案件库"]
     I --> J["打开 tools/validator.html"]
     J --> K{"是否全部通过"}
     K -->|否| L["修正案件文件"]
@@ -352,8 +352,8 @@ flowchart TD
 
 发布前确认：
 
-- 文件名和案件 id 一致。
-- 案件 id 已加入 `cases/manifest.js`。
+- Uploader 已自动分配 `case-xxx`。
+- `case-index.json` 已包含案件。
 - version 已填写。
 - suspects、weapons、locations 数量一致。
 - 每个对象都有唯一 id。

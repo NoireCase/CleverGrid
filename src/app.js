@@ -113,7 +113,7 @@ const debugSystem = {
     instantWin() {
         const data = GAME_DATA[game.idx];
         if (!data.fullTruth) {
-            alert("⚠️ 错误：当前关卡 data.js 中缺少 'fullTruth' 配置。");
+            alert("⚠️ 错误：当前案件数据中缺少 'fullTruth' 配置。");
             return;
         }
 

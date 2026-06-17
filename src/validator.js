@@ -68,6 +68,10 @@
         return { level: 'warning', label, detail: detail || '' };
     }
 
+    function isPlainObject(value) {
+        return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+    }
+
     function getItemCategory(id, suspectIds, weaponIds, locationIds) {
         if (suspectIds.has(id)) return 'suspects';
         if (weaponIds.has(id)) return 'weapons';
@@ -316,6 +320,528 @@
         };
     }
 
+    function collectStructuredClueRefs(value, refs) {
+        if (Array.isArray(value)) {
+            value.forEach(item => collectStructuredClueRefs(item, refs));
+            return;
+        }
+
+        if (isPlainObject(value)) {
+            Object.keys(value).forEach(key => {
+                if (['id', 'text', 'note', 'desc', 'description'].includes(key)) return;
+                if (['entityId', 'entityIds', 'left', 'right', 'suspect', 'weapon', 'location', 'references', 'refs'].includes(key)) {
+                    collectStructuredClueRefs(value[key], refs);
+                }
+            });
+            return;
+        }
+
+        if (hasText(value)) {
+            refs.push(value.trim());
+        }
+    }
+
+    function collectTextClueRefs(text, knownIds) {
+        if (!hasText(text)) return [];
+
+        const refs = [];
+        const tokens = text.match(/[A-Za-z][A-Za-z0-9_-]*/g) || [];
+        tokens.forEach(token => {
+            if (knownIds.has(token) || /^[SWL]\d+$/i.test(token)) {
+                refs.push(token);
+            }
+        });
+        return refs;
+    }
+
+    function formatDuplicateMessage(label, duplicates) {
+        return duplicates.length ? `${label} 中存在重复 id: ${duplicates.join(', ')}` : '';
+    }
+
+    function validateUploadedCase(item) {
+        const errors = [];
+        const warnings = [];
+
+        if (!isPlainObject(item)) {
+            return {
+                ok: false,
+                errors: ['案件 JSON 必须是一个对象。'],
+                warnings
+            };
+        }
+
+        const requiredTextFields = ['title', 'difficulty'];
+        requiredTextFields.forEach(field => {
+            if (!hasText(item[field])) errors.push(`${field} 是否存在：缺少 ${field}`);
+        });
+
+        const suspects = item.suspects;
+        const weapons = item.weapons;
+        const locations = item.locations;
+        const clues = item.clues;
+        const fullTruth = item.fullTruth;
+
+        [
+            ['suspects', suspects],
+            ['weapons', weapons],
+            ['locations', locations],
+            ['clues', clues],
+            ['fullTruth', fullTruth]
+        ].forEach(([field, value]) => {
+            if (!Array.isArray(value)) errors.push(`${field} 是否存在且为数组`);
+        });
+
+        if (!Object.prototype.hasOwnProperty.call(item, 'solution')) {
+            errors.push('solution 是否存在：缺少 solution');
+        } else if (Array.isArray(item.solution)) {
+            errors.push('当前案件使用旧版 solution 数组格式，请迁移为对象格式。');
+        } else if (!isPlainObject(item.solution)) {
+            errors.push('solution 必须使用对象格式：{ suspect, weapon, location }');
+        }
+
+        const safeSuspects = Array.isArray(suspects) ? suspects : [];
+        const safeWeapons = Array.isArray(weapons) ? weapons : [];
+        const safeLocations = Array.isArray(locations) ? locations : [];
+        const safeClues = Array.isArray(clues) ? clues : [];
+        const safeFullTruth = Array.isArray(fullTruth) ? fullTruth : [];
+
+        if (safeSuspects.length > 0 || safeWeapons.length > 0 || safeLocations.length > 0) {
+            if (!(safeSuspects.length === safeWeapons.length && safeWeapons.length === safeLocations.length)) {
+                errors.push(`suspects / weapons / locations 数量不一致：${safeSuspects.length} / ${safeWeapons.length} / ${safeLocations.length}`);
+            }
+        }
+
+        [
+            ['suspects', safeSuspects],
+            ['weapons', safeWeapons],
+            ['locations', safeLocations]
+        ].forEach(([field, items]) => {
+            items.forEach((entry, index) => {
+                if (!isPlainObject(entry)) {
+                    errors.push(`${field}[${index}] 必须是对象`);
+                    return;
+                }
+                if (!hasText(entry.id)) errors.push(`${field}[${index}] 缺少 id`);
+                if (!hasText(entry.name)) errors.push(`${field}[${index}] 缺少 name`);
+            });
+
+            const duplicates = findDuplicates(collectItemIds(items));
+            const message = formatDuplicateMessage(field, duplicates);
+            if (message) errors.push(message);
+        });
+
+        const suspectIds = collectIds(safeSuspects);
+        const weaponIds = collectIds(safeWeapons);
+        const locationIds = collectIds(safeLocations);
+        const knownIds = new Set([...suspectIds, ...weaponIds, ...locationIds]);
+        const idCategories = new Map();
+        [
+            ['suspects', safeSuspects],
+            ['weapons', safeWeapons],
+            ['locations', safeLocations]
+        ].forEach(([category, items]) => {
+            collectItemIds(items).forEach(id => {
+                if (!idCategories.has(id)) idCategories.set(id, new Set());
+                idCategories.get(id).add(category);
+            });
+        });
+        const duplicateKnownIds = Array.from(idCategories.entries())
+            .filter(([, categories]) => categories.size > 1)
+            .map(([id]) => id);
+
+        if (duplicateKnownIds.length) {
+            errors.push(`实体中存在跨分类重复 id: ${duplicateKnownIds.join(', ')}`);
+        }
+
+        if (isPlainObject(item.solution)) {
+            const solution = item.solution;
+            if (!hasText(solution.suspect)) {
+                errors.push('solution.suspect 缺少值');
+            } else if (!suspectIds.has(solution.suspect)) {
+                errors.push(`solution.suspect 引用了不存在的 suspect: ${solution.suspect}`);
+            }
+
+            if (!hasText(solution.weapon)) {
+                errors.push('solution.weapon 缺少值');
+            } else if (!weaponIds.has(solution.weapon)) {
+                errors.push(`solution.weapon 引用了不存在的 weapon: ${solution.weapon}`);
+            }
+
+            if (!hasText(solution.location)) {
+                errors.push('solution.location 缺少值');
+            } else if (!locationIds.has(solution.location)) {
+                errors.push(`solution.location 引用了不存在的 location: ${solution.location}`);
+            }
+        }
+
+        const fullTruthSuspects = new Set();
+        const fullTruthWeapons = new Set();
+        const fullTruthLocations = new Set();
+        safeFullTruth.forEach((row, index) => {
+            if (!Array.isArray(row) || row.length !== 3) {
+                errors.push(`fullTruth[${index}] 必须是 [suspect, weapon, location]`);
+                return;
+            }
+            const [suspect, weapon, location] = row;
+            fullTruthSuspects.add(suspect);
+            fullTruthWeapons.add(weapon);
+            fullTruthLocations.add(location);
+            if (!suspectIds.has(suspect)) errors.push(`fullTruth[${index}] suspect 不存在: ${suspect}`);
+            if (!weaponIds.has(weapon)) errors.push(`fullTruth[${index}] weapon 不存在: ${weapon}`);
+            if (!locationIds.has(location)) errors.push(`fullTruth[${index}] location 不存在: ${location}`);
+        });
+
+        if (safeFullTruth.length !== safeSuspects.length) {
+            errors.push(`fullTruth 行数应等于 suspects 数量：${safeFullTruth.length} / ${safeSuspects.length}`);
+        }
+
+        safeSuspects.forEach(suspect => {
+            if (suspect && suspect.id && !fullTruthSuspects.has(suspect.id)) errors.push(`fullTruth 缺少 suspect: ${suspect.id}`);
+        });
+        safeWeapons.forEach(weapon => {
+            if (weapon && weapon.id && !fullTruthWeapons.has(weapon.id)) errors.push(`fullTruth 缺少 weapon: ${weapon.id}`);
+        });
+        safeLocations.forEach(location => {
+            if (location && location.id && !fullTruthLocations.has(location.id)) errors.push(`fullTruth 缺少 location: ${location.id}`);
+        });
+
+        if (isPlainObject(item.solution) && safeFullTruth.length) {
+            const solutionInFullTruth = safeFullTruth.some(row => {
+                return Array.isArray(row)
+                    && row[0] === item.solution.suspect
+                    && row[1] === item.solution.weapon
+                    && row[2] === item.solution.location;
+            });
+            if (!solutionInFullTruth) {
+                errors.push('solution 未对应到 fullTruth 中的任意一行');
+            }
+        }
+
+        safeClues.forEach((clue, index) => {
+            const refs = [];
+            if (isPlainObject(clue) || Array.isArray(clue)) {
+                collectStructuredClueRefs(clue, refs);
+                if (isPlainObject(clue) && hasText(clue.text)) {
+                    refs.push(...collectTextClueRefs(clue.text, knownIds));
+                }
+            } else if (hasText(clue)) {
+                refs.push(...collectTextClueRefs(clue, knownIds));
+            }
+
+            refs.forEach(ref => {
+                if (!knownIds.has(ref)) {
+                    errors.push(`clue[${index}] 引用了不存在的 entity id: ${ref}`);
+                }
+            });
+        });
+
+        if (Array.isArray(item.rules)) {
+            const ruleResult = validateUploadedRules(item.rules, knownIds);
+            errors.push(...ruleResult.errors);
+        }
+
+        return {
+            ok: errors.length === 0,
+            errors,
+            warnings
+        };
+    }
+
+    function validateUploadedRules(rules, knownIds) {
+        const errors = [];
+        const allowedTypes = new Set(['same', 'notSame']);
+        const ruleIds = rules.map(rule => rule && rule.id).filter(Boolean);
+        const duplicateRuleIds = findDuplicates(ruleIds);
+
+        if (duplicateRuleIds.length) {
+            errors.push(`rules 中存在重复 id: ${duplicateRuleIds.join(', ')}`);
+        }
+
+        rules.forEach((rule, index) => {
+            if (!isPlainObject(rule)) {
+                errors.push(`rules[${index}] 必须是对象`);
+                return;
+            }
+            if (!hasText(rule.id)) errors.push(`rules[${index}] 缺少 id`);
+            if (!allowedTypes.has(rule.type)) errors.push(`rules[${index}] type 必须是 same 或 notSame`);
+            if (!hasText(rule.left)) errors.push(`rules[${index}] 缺少 left`);
+            if (!hasText(rule.right)) errors.push(`rules[${index}] 缺少 right`);
+            if (hasText(rule.left) && !knownIds.has(rule.left)) errors.push(`rules[${index}].left 引用了不存在的 entity id: ${rule.left}`);
+            if (hasText(rule.right) && !knownIds.has(rule.right)) errors.push(`rules[${index}].right 引用了不存在的 entity id: ${rule.right}`);
+        });
+
+        return { errors };
+    }
+
+    function getRuleSourceLabel(rule, ruleIndex, clues) {
+        if (Number.isInteger(rule && rule.sourceClueIndex)) {
+            return `clue[${rule.sourceClueIndex}]`;
+        }
+
+        if (hasText(rule && rule.sourceClueId) && Array.isArray(clues)) {
+            const clueIndex = clues.findIndex(clue => isPlainObject(clue) && clue.id === rule.sourceClueId);
+            if (clueIndex >= 0) return `clue[${clueIndex}]`;
+        }
+
+        if (Array.isArray(clues) && ruleIndex < clues.length) {
+            return `clue[${ruleIndex}]`;
+        }
+
+        return `rule[${ruleIndex}]`;
+    }
+
+    function validateUploadedCaseAnswer(item) {
+        if (!isPlainObject(item) || !isPlainObject(item.solution)) {
+            return {
+                enabled: false,
+                ok: false,
+                messages: ['答案校验：格式校验未通过，已跳过。']
+            };
+        }
+
+        if (!Array.isArray(item.rules) || item.rules.length === 0) {
+            return {
+                enabled: false,
+                ok: true,
+                messages: ['答案校验：暂未启用 / 缺少结构化 rules。当前不会理解自然语言 clues。']
+            };
+        }
+
+        const solutionIds = new Set([
+            item.solution.suspect,
+            item.solution.weapon,
+            item.solution.location
+        ].filter(Boolean));
+        const conflicts = [];
+
+        item.rules.forEach((rule, index) => {
+            if (!isPlainObject(rule) || !hasText(rule.left) || !hasText(rule.right)) return;
+
+            const leftInSolution = solutionIds.has(rule.left);
+            const rightInSolution = solutionIds.has(rule.right);
+            const sourceLabel = getRuleSourceLabel(rule, index, item.clues);
+
+            if (rule.type === 'same' && leftInSolution !== rightInSolution) {
+                conflicts.push(`${sourceLabel} 与 solution 冲突：${rule.left} 和 ${rule.right} 应该在同一答案组合中`);
+            }
+
+            if (rule.type === 'notSame' && leftInSolution && rightInSolution) {
+                conflicts.push(`${sourceLabel} 与 solution 冲突：${rule.left} 和 ${rule.right} 不应在同一答案组合中`);
+            }
+        });
+
+        return {
+            enabled: true,
+            ok: conflicts.length === 0,
+            messages: conflicts
+        };
+    }
+
+    function findSolutionRow(rows, solution) {
+        if (!Array.isArray(rows) || !isPlainObject(solution)) return null;
+
+        const bySuspect = rows.find(row => row && row.suspect === solution.suspect);
+        if (bySuspect) return bySuspect;
+
+        const byWeaponAndLocation = rows.find(row => row && row.weapon === solution.weapon && row.location === solution.location);
+        if (byWeaponAndLocation) return byWeaponAndLocation;
+
+        return rows[0] || null;
+    }
+
+    function formatSolutionTriplet(row) {
+        if (!row) return '无';
+        return `${row.suspect || '?'} / ${row.weapon || '?'} / ${row.location || '?'}`;
+    }
+
+    function formatSolutionSample(rows, solution) {
+        const row = findSolutionRow(rows, solution);
+        return {
+            suspect: row && row.suspect,
+            weapon: row && row.weapon,
+            location: row && row.location,
+            text: formatSolutionTriplet(row),
+            fullTruth: Array.isArray(rows) ? rows : []
+        };
+    }
+
+    function solutionMatchesRow(solution, row) {
+        return Boolean(row)
+            && row.suspect === solution.suspect
+            && row.weapon === solution.weapon
+            && row.location === solution.location;
+    }
+
+    function validateUploadedUniqueSolution(item) {
+        const baseResult = {
+            status: 'error',
+            solutions: [],
+            count: 0,
+            matchesSolution: false,
+            messages: []
+        };
+
+        if (!isPlainObject(item)) {
+            return {
+                ...baseResult,
+                messages: ['唯一解验证失败：案件数据格式错误。']
+            };
+        }
+
+        if (!Array.isArray(item.rules) || item.rules.length === 0) {
+            return {
+                status: 'unsupported',
+                solutions: [],
+                count: 0,
+                matchesSolution: false,
+                messages: ['当前案件缺少结构化 rules，无法执行唯一解验证。']
+            };
+        }
+
+        if (!global.CleverGridSolver || typeof global.CleverGridSolver.solveCase !== 'function') {
+            return {
+                status: 'error',
+                solutions: [],
+                count: 0,
+                matchesSolution: false,
+                messages: ['唯一解验证失败：未加载 src/solver.js。']
+            };
+        }
+
+        try {
+            const result = global.CleverGridSolver.solveCase(item, {
+                solutionLimit: 5,
+                stopAfterMultiple: false
+            });
+            const count = Number.isFinite(result.count) ? result.count : result.solutionCount || 0;
+            const solutions = (Array.isArray(result.solutions) ? result.solutions : [])
+                .slice(0, 5)
+                .map(rows => formatSolutionSample(rows, item.solution));
+
+            if (result.status === 'invalid') {
+                return {
+                    status: 'error',
+                    solutions,
+                    count,
+                    matchesSolution: false,
+                    messages: result.errors && result.errors.length
+                        ? result.errors
+                        : ['唯一解验证失败：Solver 输入无效。']
+                };
+            }
+
+            if (result.status === 'none') {
+                return {
+                    status: 'none',
+                    solutions: [],
+                    count: 0,
+                    matchesSolution: false,
+                    messages: [
+                        '唯一解验证失败：无可行解。',
+                        '可能原因：rules 之间互相冲突。',
+                        '可能原因：solution 与 rules 冲突。',
+                        '可能原因：某些实体被所有可能性排除。'
+                    ]
+                };
+            }
+
+            if (result.status === 'multiple') {
+                return {
+                    status: 'multiple',
+                    solutions,
+                    count,
+                    matchesSolution: false,
+                    messages: [
+                        `唯一解验证失败：存在多个可行解。`,
+                        `当前找到 ${count} 个可行解，已展示前 ${solutions.length} 个。`
+                    ]
+                };
+            }
+
+            if (result.status === 'unique') {
+                const uniqueRows = result.solutions && result.solutions[0];
+                const solvedRow = findSolutionRow(uniqueRows, item.solution);
+
+                if (!solutionMatchesRow(item.solution, solvedRow)) {
+                    return {
+                        status: 'unique',
+                        solutions: solutions.length ? solutions : [formatSolutionSample(uniqueRows, item.solution)],
+                        count,
+                        matchesSolution: false,
+                        messages: [
+                            '唯一解验证失败：Solver 得出的唯一答案与 solution 不一致。',
+                            `当前 solution: ${formatSolutionTriplet(item.solution)}`,
+                            `Solver 解出答案: ${formatSolutionTriplet(solvedRow)}`
+                        ]
+                    };
+                }
+
+                return {
+                    status: 'unique',
+                    solutions: solutions.length ? solutions : [formatSolutionSample(uniqueRows, item.solution)],
+                    count,
+                    matchesSolution: true,
+                    messages: [
+                        '当前案件存在唯一解。',
+                        '唯一解与 solution 一致。'
+                    ]
+                };
+            }
+
+            return {
+                status: 'error',
+                solutions,
+                count,
+                matchesSolution: false,
+                messages: result.messages && result.messages.length
+                    ? result.messages
+                    : ['唯一解验证失败：Solver 返回了未知状态。']
+            };
+        } catch (error) {
+            return {
+                status: 'error',
+                solutions: [],
+                count: 0,
+                matchesSolution: false,
+                messages: [`唯一解验证失败：${error && error.message ? error.message : 'Solver 执行异常。'}`]
+            };
+        }
+    }
+
+    function normalizeUploadedCase(item) {
+        if (!isPlainObject(item)) return item;
+
+        const orderedKeys = [
+            'id',
+            'version',
+            'title',
+            'difficulty',
+            'intro',
+            'suspects',
+            'weapons',
+            'locations',
+            'clues',
+            'rules',
+            'solution',
+            'fullTruth'
+        ];
+        const normalized = {};
+
+        orderedKeys.forEach(key => {
+            if (Object.prototype.hasOwnProperty.call(item, key)) {
+                normalized[key] = item[key];
+            }
+        });
+
+        Object.keys(item).forEach(key => {
+            if (!Object.prototype.hasOwnProperty.call(normalized, key)) {
+                normalized[key] = item[key];
+            }
+        });
+
+        return normalized;
+    }
+
     global.CleverGridValidator = {
         hasText,
         parseSolution,
@@ -324,6 +850,10 @@
         findDuplicates,
         validateRules,
         validateSolver,
-        validateCase
+        validateCase,
+        validateUploadedCase,
+        validateUploadedCaseAnswer,
+        validateUploadedUniqueSolution,
+        normalizeUploadedCase
     };
 })(globalThis);

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legacy Case Migration</title>
+    <style>
+        :root {
+            --bg: #f5f7fa;
+            --panel: #fff;
+            --text: #24313d;
+            --muted: #667085;
+            --border: #d6dde6;
+            --accent: #2563eb;
+            --bad: #b3261e;
+            --ok: #1f7a4d;
+            --code-bg: #111827;
+            --code-text: #e5e7eb;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+            line-height: 1.6;
+        }
+
+        .page {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 28px 20px 48px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        h1, h2, p { margin: 0; }
+        h1 { font-size: 28px; }
+        h2 { font-size: 18px; margin-bottom: 12px; }
+
+        .subtitle,
+        .status {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .nav-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        a {
+            color: var(--accent);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 18px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06);
+        }
+
+        button {
+            min-height: 38px;
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            padding: 8px 12px;
+            background: var(--accent);
+            color: #fff;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.55;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-top: 12px;
+        }
+
+        pre {
+            max-height: 520px;
+            overflow: auto;
+            margin: 0;
+            padding: 14px;
+            border-radius: 6px;
+            background: var(--code-bg);
+            color: var(--code-text);
+            font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+
+        .ok { color: var(--ok); }
+        .bad { color: var(--bad); }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <div class="topbar">
+            <div>
+                <h1>Legacy Case Migration</h1>
+                <p class="subtitle">一次性把旧 `cases/*.js` 案件迁移为 `cases/case-xxx.json` 和 `case-index.json`。</p>
+            </div>
+            <nav class="nav-links">
+                <a href="library.html">打开 Library Manager</a>
+                <a href="uploader.html">打开 Uploader</a>
+                <a href="../index.html">返回游戏首页</a>
+            </nav>
+        </div>
+
+        <section class="panel">
+            <h2>迁移操作</h2>
+            <p>读取旧 manifest 后会按当前顺序生成 `case-001`、`case-002`、`case-003`。</p>
+            <div class="actions">
+                <button id="preview-button" type="button">生成迁移预览</button>
+                <button id="write-button" type="button" disabled>写入案件库</button>
+                <span class="status" id="status">等待生成迁移预览。</span>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>迁移预览</h2>
+            <pre id="preview-output">尚无预览。</pre>
+        </section>
+    </main>
+
+    <script src="../cases/manifest.js"></script>
+    <script src="../src/case-loader.js"></script>
+    <script src="../data.js"></script>
+    <script src="../src/case-library.js"></script>
+    <script>
+        const previewButton = document.getElementById('preview-button');
+        const writeButton = document.getElementById('write-button');
+        const statusEl = document.getElementById('status');
+        const previewOutput = document.getElementById('preview-output');
+        let migration = null;
+
+        function setStatus(text, state) {
+            statusEl.textContent = text;
+            statusEl.className = `status ${state || ''}`;
+        }
+
+        async function buildMigration() {
+            await window.CleverGridCaseLoader.load({ basePath: '../cases/' });
+            const legacyCases = window.CleverGridData.install();
+            migration = window.CleverGridCaseLibrary.migrateLegacyCases(legacyCases);
+            previewOutput.textContent = JSON.stringify({
+                index: migration.index,
+                files: migration.files.map(file => file.path)
+            }, null, 2);
+            writeButton.disabled = false;
+            setStatus(`已生成迁移预览：${migration.files.length} 个案件。`, 'ok');
+        }
+
+        previewButton.addEventListener('click', () => {
+            buildMigration().catch(error => {
+                setStatus(`迁移预览失败：${error && error.message ? error.message : '未知错误'}`, 'bad');
+            });
+        });
+
+        writeButton.addEventListener('click', async () => {
+            if (!migration) return;
+            if (!window.showDirectoryPicker) {
+                setStatus('当前浏览器不支持直接写入文件夹。请使用支持 File System Access API 的浏览器。', 'bad');
+                return;
+            }
+
+            try {
+                setStatus('请选择 CleverGrid 项目文件夹。');
+                await window.CleverGridCaseLibrary.writeMigrationToDirectory(migration);
+                setStatus('迁移已写入：cases/*.json 和 case-index.json。', 'ok');
+                writeButton.disabled = true;
+            } catch (error) {
+                setStatus(`迁移写入失败：${error && error.message ? error.message : '未完成写入'}`, 'bad');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case Library Manager</title>
+    <style>
+        :root {
+            --bg: #f5f7fa;
+            --panel: #fff;
+            --text: #24313d;
+            --muted: #667085;
+            --border: #d6dde6;
+            --accent: #2563eb;
+            --ok-bg: #edf8f2;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+            line-height: 1.6;
+        }
+
+        .page {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 28px 20px 48px;
+        }
+
+        .topbar,
+        .layout {
+            display: grid;
+            gap: 16px;
+        }
+
+        .topbar {
+            grid-template-columns: 1fr auto;
+            align-items: start;
+            margin-bottom: 20px;
+        }
+
+        .layout {
+            grid-template-columns: minmax(0, 1fr) minmax(340px, 0.75fr);
+            align-items: start;
+        }
+
+        h1, h2, h3, p { margin: 0; }
+        h1 { font-size: 28px; }
+        h2 { font-size: 18px; margin-bottom: 12px; }
+        h3 { font-size: 16px; margin: 14px 0 8px; }
+
+        .subtitle,
+        .muted {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .nav-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        a {
+            color: var(--accent);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        a:hover { text-decoration: underline; }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 18px;
+            box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06);
+        }
+
+        input {
+            width: 100%;
+            min-height: 38px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 10px;
+            font: inherit;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 14px;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            color: var(--muted);
+            font-size: 13px;
+            background: #f8fafc;
+        }
+
+        tr.case-row {
+            cursor: pointer;
+        }
+
+        tr.case-row:hover {
+            background: #eef4ff;
+        }
+
+        tr.case-row.active {
+            background: var(--ok-bg);
+        }
+
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .tag {
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 3px 8px;
+            background: #fff;
+            font-size: 13px;
+        }
+
+        pre {
+            max-height: 280px;
+            overflow: auto;
+            margin: 10px 0 0;
+            padding: 12px;
+            border-radius: 6px;
+            background: #111827;
+            color: #e5e7eb;
+            font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+
+        @media (max-width: 900px) {
+            .topbar,
+            .layout {
+                display: block;
+            }
+
+            .nav-links {
+                justify-content: flex-start;
+                margin-top: 12px;
+            }
+
+            .panel + .panel,
+            .layout .panel + .panel {
+                margin-top: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <div class="topbar">
+            <div>
+                <h1>Case Library Manager</h1>
+                <p class="subtitle">查看正式案件库、搜索案件，并读取案件详情。</p>
+            </div>
+            <nav class="nav-links" aria-label="工具导航">
+                <a href="../index.html">返回游戏首页</a>
+                <a href="uploader.html">打开 Uploader</a>
+                <a href="validator.html">打开 Validator</a>
+            </nav>
+        </div>
+
+        <div class="layout">
+            <section class="panel">
+                <h2>案件列表</h2>
+                <input id="search-input" type="search" placeholder="按 Case ID 或 Title 搜索">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Case ID</th>
+                            <th>Title</th>
+                            <th>Difficulty</th>
+                            <th>File Path</th>
+                        </tr>
+                    </thead>
+                    <tbody id="case-list"></tbody>
+                </table>
+            </section>
+
+            <section class="panel">
+                <h2>案件详情</h2>
+                <div id="case-detail">
+                    <p class="muted">点击左侧案件查看详情。</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="../src/case-library.js"></script>
+    <script>
+        const listEl = document.getElementById('case-list');
+        const detailEl = document.getElementById('case-detail');
+        const searchEl = document.getElementById('search-input');
+
+        let indexData = { version: 1, cases: [] };
+        let selectedId = '';
+
+        function escapeHtml(value) {
+            return String(value || '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function filteredCases() {
+            const query = searchEl.value.trim().toLowerCase();
+            if (!query) return indexData.cases;
+            return indexData.cases.filter(item => {
+                return item.id.toLowerCase().includes(query)
+                    || item.title.toLowerCase().includes(query);
+            });
+        }
+
+        function renderList() {
+            const rows = filteredCases();
+            listEl.innerHTML = rows.map(item => `
+                <tr class="case-row ${item.id === selectedId ? 'active' : ''}" data-id="${escapeHtml(item.id)}">
+                    <td>${escapeHtml(item.id)}</td>
+                    <td>${escapeHtml(item.title)}</td>
+                    <td>${escapeHtml(item.difficulty)}</td>
+                    <td>${escapeHtml(item.file)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderTags(title, items) {
+            return `
+                <h3>${escapeHtml(title)}</h3>
+                <div class="tag-list">
+                    ${(Array.isArray(items) ? items : []).map(item => `
+                        <span class="tag">${escapeHtml(item.id)} · ${escapeHtml(item.name)}</span>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderDetail(caseData) {
+            detailEl.innerHTML = `
+                <h3>${escapeHtml(caseData.title)}</h3>
+                <p class="muted">${escapeHtml(caseData.difficulty)}</p>
+                ${renderTags('Suspects', caseData.suspects)}
+                ${renderTags('Weapons', caseData.weapons)}
+                ${renderTags('Locations', caseData.locations)}
+                <h3>Solution</h3>
+                <pre>${escapeHtml(JSON.stringify(caseData.solution, null, 2))}</pre>
+            `;
+        }
+
+        listEl.addEventListener('click', async event => {
+            const row = event.target.closest('.case-row');
+            if (!row) return;
+
+            selectedId = row.dataset.id;
+            renderList();
+
+            const entry = indexData.cases.find(item => item.id === selectedId);
+            if (!entry) return;
+
+            try {
+                const response = await fetch(`../${entry.file}`, { cache: 'no-store' });
+                if (!response.ok) throw new Error(entry.file);
+                renderDetail(await response.json());
+            } catch (error) {
+                detailEl.innerHTML = `<p class="muted">案件读取失败：${escapeHtml(entry.file)}</p>`;
+            }
+        });
+
+        searchEl.addEventListener('input', renderList);
+
+        window.CleverGridCaseLibrary.loadIndex('../case-index.json')
+            .then(index => {
+                indexData = index;
+                renderList();
+            })
+            .catch(error => {
+                listEl.innerHTML = `<tr><td colspan="4">案件索引读取失败，请检查 case-index.json。</td></tr>`;
+            });
+    </script>
+</body>
+</html>

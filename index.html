@@ -136,7 +136,7 @@
 <div id="gm-panel">
     <h3>GM 调试控制台 <span id="gm-close" style="cursor:pointer;" onclick="debugSystem.toggleUI()">X</span></h3>
     <div class="gm-section">
-        <label>当前关卡答案 (Base64解码):</label>
+        <label>当前关卡答案:</label>
         <div class="gm-val" id="gm-solution-text">???</div>
     </div>
     <div class="gm-section">
@@ -160,19 +160,17 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-<script src="cases/manifest.js"></script>
-<script src="src/case-loader.js"></script>
-<script src="data.js"></script>
+<script src="src/case-library.js"></script>
 <script src="src/app.js"></script>
 <script>
-    window.CleverGridCaseLoader.load({ basePath: 'cases/' })
-        .then(() => {
-            window.CleverGridData.install();
+    window.CleverGridCaseLibrary.loadCases({ indexPath: 'case-index.json' })
+        .then(({ cases }) => {
+            window.GAME_DATA = cases;
             window.startCleverGridApp();
         })
         .catch(error => {
             console.error(error);
-            alert('案件数据加载失败，请检查 cases/manifest.js 和案件文件。');
+            alert('案件数据加载失败，请检查 case-index.json 和 cases/*.json。');
         });
 </script>
 </body>

@@ -6,8 +6,10 @@
     function makeInvalid(errors, warnings) {
         return {
             status: 'invalid',
+            count: 0,
             solutionCount: 0,
             solutions: [],
+            messages: errors || [],
             warnings: warnings || [],
             errors: errors || []
         };
@@ -108,6 +110,7 @@
         const weaponPermutations = permute(weapons);
         const locationPermutations = permute(locations);
         const solutions = [];
+        let solutionCount = 0;
 
         for (let weaponIndex = 0; weaponIndex < weaponPermutations.length; weaponIndex += 1) {
             for (let locationIndex = 0; locationIndex < locationPermutations.length; locationIndex += 1) {
@@ -115,6 +118,7 @@
                 const matchesAllRules = rules.every(rule => ruleMatches(rows, rule));
 
                 if (!matchesAllRules) continue;
+                solutionCount += 1;
                 if (solutions.length < solutionLimit) {
                     solutions.push(rows);
                 }
@@ -122,8 +126,10 @@
                 if (stopAfterMultiple && solutions.length >= 2) {
                     return {
                         status: 'multiple',
-                        solutionCount: solutions.length,
+                        count: solutionCount,
+                        solutionCount,
                         solutions,
+                        messages: ['当前 rules 可推出多个解。'],
                         warnings,
                         errors
                     };
@@ -131,10 +137,14 @@
             }
         }
 
+        const status = solutionCount === 1 ? 'unique' : (solutionCount > 1 ? 'multiple' : 'none');
+
         return {
-            status: solutions.length === 1 ? 'unique' : 'none',
-            solutionCount: solutions.length,
+            status,
+            count: solutionCount,
+            solutionCount,
             solutions,
+            messages: solutionCount === 0 ? ['当前 rules 无可行解。'] : (solutionCount > 1 ? ['当前 rules 可推出多个解。'] : []),
             warnings,
             errors
         };

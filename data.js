@@ -1,5 +1,6 @@
-// 这里按 manifest 顺序组装所有案件数据。
-// 每个案件对象维护在 cases/*.js 中，data.js 继续提供 GAME_DATA 给游戏和工具使用。
+// Deprecated legacy data bridge.
+// Kept only for tools/migrate-cases.html and old cases/*.js migration reference.
+// Do not add new cases here. The source of truth is case-index.json + cases/*.json.
 (function (global) {
     function getCaseId(entry) {
         if (typeof entry === 'string') return entry;
