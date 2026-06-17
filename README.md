@@ -33,6 +33,7 @@ CleverGrid 是一个轻量级静态网页游戏。项目不需要安装依赖，
 - 撤销 / 重做
 - 智能辅助标记
 - 案件数据校验工具
+- Case Uploader 和 Case Library Manager
 - 案件编写规范文档
 
 ## 快速开始
@@ -57,13 +58,44 @@ http://localhost:端口号/index.html
 
 ## 项目结构
 
+Legacy `data.js` is deprecated and kept only for migration reference.
+Do not add new cases to `data.js`.
+The source of truth is now `case-index.json` and `cases/*.json`.
+
 ```text
 CleverGrid/
 ├── index.html                 游戏首页和主流程
-├── data.js                    案件数据
+├── case-index.json            正式案件索引
+├── data.js                    旧案件兼容与迁移参考
+├── cases/
+│   ├── case-001.json          正式案件文件
+│   ├── case-002.json
+│   ├── *.json
+│   ├── manifest.js            旧案件迁移参考
+│   └── *.js                   旧案件迁移参考
+├── assets/
+│   └── styles.css             游戏样式
+├── src/
+│   ├── app.js                 游戏逻辑
+│   ├── case-library.js        案件库读取、入库、迁移工具函数
+│   ├── case-loader.js         案件脚本加载器
+│   ├── solver.js              rules 求解器
+│   └── validator.js           可复用案件校验逻辑
 ├── tools/
-│   └── validator.html         案件数据校验工具
+│   ├── library.html           正式案件库管理工具
+│   ├── migrate-cases.html     旧案件一次性迁移工具
+│   ├── validator.html         案件数据校验工具
+│   └── uploader.html          AI 案件 JSON 上传校验工具
+├── tests/
+│   ├── phase5.2-uploader-solver.test.js
+│   ├── phase5.3-case-library.test.js
+│   ├── phase5.3.3-bad-cases.test.js
+│   ├── phase5.3.5-difficulty.test.js
+│   └── bad-cases/              故意错误的案件测试集
 ├── docs/
+│   ├── ai-case-generation.md   AI 案件生成规范
+│   ├── prompts/                AI 案件生成 Prompt 模板库
+│   ├── case-schema.md         案件数据格式规范
 │   ├── case-template.md       案件编写规范
 │   └── example-case.md        示例案件模板
 ├── .github/
@@ -77,29 +109,66 @@ CleverGrid/
 新增案件建议按下面流程进行：
 
 ```text
-阅读 docs/case-template.md
+AI 生成案件 JSON
 ↓
-复制 docs/example-case.md
+打开 Case Uploader
 ↓
-修改案件内容
+格式校验
 ↓
-加入 data.js
+Solver 验证唯一解
 ↓
-运行 tools/validator.html
+加入案件库
+↓
+自动生成 case-xxx
+↓
+自动更新 case-index.json
 ↓
 试玩验证
+↓
+发布
 ```
 
 具体说明：
 
-1. 先阅读 `docs/case-template.md`，理解案件需要哪些内容。
-2. 复制 `docs/example-case.md` 中的示例结构。
-3. 修改案件标题、难度、嫌疑人、凶器、地点、线索、答案原文和完整真相。
-4. 将整理好的案件加入 `data.js` 的 `GAME_DATA` 列表。
-5. 打开 `tools/validator.html` 检查数据。
-6. 校验通过后，打开 `index.html` 试玩，确认案件可以正常完成。
+1. 先阅读 `docs/case-schema.md`，确认字段格式和 Case Uploader 输出格式。
+2. 使用 `docs/ai-case-generation.md` 作为 AI 生成案件 JSON 的统一规范。
+3. 从 `docs/prompts/` 选择合适的 Prompt 模板，让 AI 生成案件 JSON，案件 ID 可以留空或使用临时值。
+4. 打开 `tools/uploader.html`。
+5. 粘贴 JSON 或上传任意名称的 `.json` 文件。
+6. 确认 JSON 解析、格式校验、答案校验、唯一解验证全部通过。
+7. 点击“加入案件库”。
+8. 系统自动生成 `case-xxx`，写入 `cases/case-xxx.json`，并更新 `case-index.json`。
+9. 打开 `tools/validator.html` 检查正式案件库。
+10. 打开 `index.html` 试玩，确认案件可以正常完成。
 
 维护者新增案件时，建议先设计完整真相，再编写线索。不要先写线索，再拼凑答案。
+
+`clues` 面向玩家展示，可以写成自然语言；`rules` 面向 Validator、Solver 和 Case Uploader，是机器可读的结构化线索。当前游戏仍按字符串显示 `clues`，所以新增可玩案件暂时应继续使用字符串线索；5 个正式案件已经配置 `rules`。
+
+## Difficulty Standard
+
+案件 JSON 中的 `difficulty` 统一使用英文枚举，页面显示时再转换成中文：
+
+| 存储值 | 页面显示 |
+| --- | --- |
+| `easy` | 入门级 |
+| `medium` | 中级 |
+| `hard` | 进阶版 |
+| `expert` | 专家级 |
+
+新增案件和 AI 生成案件不要再使用 `入门级`、`中级`、`进阶版`、`专家级` 作为存储值。旧中文值仍可被 Validator 读取，但会显示迁移提醒。
+
+AI 案件生成规范见：
+
+```text
+docs/ai-case-generation.md
+```
+
+可直接复制使用的 Prompt 模板见：
+
+```text
+docs/prompts/
+```
 
 ## 案件校验工具
 
@@ -109,17 +178,74 @@ CleverGrid/
 tools/validator.html
 ```
 
-它会读取当前 `data.js` 中的 `GAME_DATA`，并检查每个案件：
+它会读取当前 `case-index.json` 和 `cases/*.json`，并检查每个案件：
 
+- case id 是否存在
+- case id 是否重复
+- version 是否存在
 - title 是否存在
+- suspects / weapons / locations 是否为空
 - suspects / weapons / locations 是否都有 id
+- suspects / weapons / locations 内部 id 是否重复
 - suspects / weapons / locations 数量是否一致
+- solution 是否能解析为嫌疑人、凶器、地点
 - solution 中的嫌疑人、凶器、地点是否存在
 - fullTruth 是否覆盖所有嫌疑人
 - fullTruth 每行 ID 是否有效
+- fullTruth 是否完整
+- solution 是否对应到 fullTruth
 - clues 数量是否大于 0
+- rules 是否存在；当前没有 rules 只给 warning
+- rules 是否为数组
+- rule id 是否存在且不重复
+- rule type 是否为 same / notSame
+- rule left / right 是否存在于 suspects / weapons / locations
+- rule left / right 是否来自不同分类
+- rule sourceClueId 如果存在，是否能在 clues 中找到
+- rule 是否与 fullTruth 一致
+- Solver 是否有解
+- Solver 是否唯一解；本阶段多解显示为提醒
+- Solver 唯一解是否与 fullTruth 完全一致
 
 每次新增或修改案件后，都应该先运行校验工具，再试玩。
+
+## 测试
+
+项目当前包含两类测试：
+
+- 正常流程测试：确认 Uploader、Solver、Case Library 的正常功能不回退。
+- 错误案件测试：确认明显错误的案件不会被 Validator、Solver 或 Uploader 放行。
+
+当前测试命令：
+
+```text
+node tests/phase5.2-uploader-solver.test.js
+node tests/phase5.3-case-library.test.js
+node tests/phase5.3.3-bad-cases.test.js
+node tests/phase5.3.5-difficulty.test.js
+```
+
+`tests/bad-cases/` 中的 JSON 文件都是故意写错的案件，用来防止未来修改规则系统时漏检。
+
+## Case Uploader
+
+AI 生成案件 JSON 后，可以先用上传工具检查格式：
+
+```text
+tools/uploader.html
+```
+
+当前工具支持粘贴 JSON 或上传任意名称的 `.json` 文件。它会执行解析、格式校验、基于 rules 的答案校验、唯一解验证，并在全部通过后写入正式案件库。
+
+## Case Library Manager
+
+正式案件库管理工具路径：
+
+```text
+tools/library.html
+```
+
+它会读取 `case-index.json`，显示 Case ID、Title、Difficulty、File Path，并支持按 ID 或 Title 搜索。点击案件后会读取对应 `cases/case-xxx.json` 并展示详情。
 
 ## 维护者说明
 
@@ -127,16 +253,16 @@ tools/validator.html
 - 项目保持静态网页结构，适合 GitHub Pages 部署。
 - 当前不需要安装依赖。
 - 当前不需要 npm、打包工具或复杂框架。
-- 非工程维护者优先修改 `data.js` 和 `docs/` 文档。
+- 非工程维护者优先使用 `tools/uploader.html` 和 `tools/library.html`。
+- `data.js`、`cases/manifest.js` 和旧 `cases/*.js` 已废弃，只作为迁移参考，首页不再依赖它们。
+- 不要再向 `data.js` 添加新案件；新案件应通过 `tools/uploader.html` 验证后加入案件库。
 - 修改游戏主流程前，建议先备份并完整试玩所有案件。
 
 ## 当前限制
 
-- 新增案件仍需要编辑 `data.js`。
-- 当前还没有无代码案件编辑器。
-- 校验工具只能检查数据结构，不能自动判断谜题是否一定有唯一解。
+- 当前还没有可视化案件编辑器；Phase 5.3 提供案件 JSON 上传、格式校验、唯一解验证、正式入库和案件库管理入口。
+- 校验工具现在能基于 rules 判断无解、唯一解、多解；复杂条件规则仍未支持。
 - 移动端体验可能不如桌面端。
-- 当前没有自动化测试流程。
 - README 中暂未记录正式在线体验地址。
 
 ## Roadmap
