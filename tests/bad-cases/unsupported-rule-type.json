@@ -1,7 +1,7 @@
 {
   "version": 1,
   "title": "Unsupported Rule Type",
-  "difficulty": "test",
+  "difficulty": "easy",
   "intro": "Bad case: unsupported rule type.",
   "suspects": [
     { "id": "S1", "name": "Suspect 1" },

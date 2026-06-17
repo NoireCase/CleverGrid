@@ -2,7 +2,7 @@
   "id": "case-002",
   "version": 1,
   "title": "深夜图书馆之谜",
-  "difficulty": "中级",
+  "difficulty": "medium",
   "intro": "市图书馆的管理员在闭馆后听到了一声惨叫。一本珍贵的古籍不见了，地上留下了一滩墨水。谁是那个深夜潜入的破坏者？",
   "suspects": [
     {

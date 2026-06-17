@@ -1,6 +1,37 @@
 (function (global) {
+    const DIFFICULTY_LABELS = {
+        easy: '入门级',
+        medium: '中级',
+        hard: '进阶版',
+        expert: '专家级'
+    };
+    const LEGACY_DIFFICULTY_VALUES = {
+        '入门级': 'easy',
+        '中级': 'medium',
+        '进阶版': 'hard',
+        '专家级': 'expert'
+    };
+    const STANDARD_DIFFICULTIES = new Set(Object.keys(DIFFICULTY_LABELS));
+
     function hasText(value) {
         return typeof value === 'string' && value.trim().length > 0;
+    }
+
+    function isStandardDifficulty(value) {
+        return STANDARD_DIFFICULTIES.has(value);
+    }
+
+    function isLegacyDifficulty(value) {
+        return Object.prototype.hasOwnProperty.call(LEGACY_DIFFICULTY_VALUES, value);
+    }
+
+    function formatDifficulty(value) {
+        return DIFFICULTY_LABELS[value] || DIFFICULTY_LABELS[LEGACY_DIFFICULTY_VALUES[value]] || value || '';
+    }
+
+    function normalizeDifficulty(value) {
+        if (isLegacyDifficulty(value)) return LEGACY_DIFFICULTY_VALUES[value];
+        return value || '';
     }
 
     function parseSolution(solution) {
@@ -230,6 +261,10 @@
         const suspectDuplicates = findDuplicates(collectItemIds(suspects));
         const weaponDuplicates = findDuplicates(collectItemIds(weapons));
         const locationDuplicates = findDuplicates(collectItemIds(locations));
+        const difficultyValue = item && item.difficulty;
+        const difficultyExists = hasText(difficultyValue);
+        const difficultyStandard = isStandardDifficulty(difficultyValue);
+        const difficultyLegacy = isLegacyDifficulty(difficultyValue);
 
         const suspectIds = collectIds(suspects);
         const weaponIds = collectIds(weapons);
@@ -265,6 +300,8 @@
             makeCheck(hasText(item && item.id) && !duplicateCaseIds.includes(item.id), 'case id 是否重复', duplicateCaseIds.includes(item && item.id) ? item.id : '未重复'),
             makeCheck(item && item.version !== undefined && item.version !== null && String(item.version).trim().length > 0, 'version 是否存在', item && item.version !== undefined ? `version ${item.version}` : '缺少 version'),
             makeCheck(hasText(item && item.title), 'title 是否存在', hasText(item && item.title) ? item.title : '缺少 title'),
+            makeCheck(difficultyExists, 'difficulty 是否存在', difficultyExists ? difficultyValue : '缺少 difficulty'),
+            makeCheck(difficultyExists && (difficultyStandard || difficultyLegacy), 'difficulty 是否为标准枚举', difficultyStandard ? `${difficultyValue} / ${formatDifficulty(difficultyValue)}` : (difficultyLegacy ? `${difficultyValue} / 建议迁移为 ${LEGACY_DIFFICULTY_VALUES[difficultyValue]}` : '只允许 easy / medium / hard / expert')),
             makeCheck(suspects.length > 0, 'suspects 是否为空', `${suspects.length} 个嫌疑人`),
             makeCheck(weapons.length > 0, 'weapons 是否为空', `${weapons.length} 个凶器`),
             makeCheck(locations.length > 0, 'locations 是否为空', `${locations.length} 个地点`),
@@ -301,6 +338,10 @@
             ...rulesResult.warnings,
             ...solverValidation.warnings
         ];
+
+        if (difficultyLegacy) {
+            allWarnings.unshift(makeWarning('difficulty 使用旧版中文文案', `检测到旧版 difficulty 文案：${difficultyValue}，建议迁移为 ${LEGACY_DIFFICULTY_VALUES[difficultyValue]}。`));
+        }
 
         return {
             index,
@@ -374,6 +415,14 @@
         requiredTextFields.forEach(field => {
             if (!hasText(item[field])) errors.push(`${field} 是否存在：缺少 ${field}`);
         });
+
+        if (hasText(item.difficulty)) {
+            if (isLegacyDifficulty(item.difficulty)) {
+                warnings.push(`检测到旧版 difficulty 文案：${item.difficulty}，建议迁移为标准枚举：${LEGACY_DIFFICULTY_VALUES[item.difficulty]}。`);
+            } else if (!isStandardDifficulty(item.difficulty)) {
+                errors.push(`difficulty 必须是 easy / medium / hard / expert：${item.difficulty}`);
+            }
+        }
 
         const suspects = item.suspects;
         const weapons = item.weapons;
@@ -829,7 +878,7 @@
 
         orderedKeys.forEach(key => {
             if (Object.prototype.hasOwnProperty.call(item, key)) {
-                normalized[key] = item[key];
+                normalized[key] = key === 'difficulty' ? normalizeDifficulty(item[key]) : item[key];
             }
         });
 
@@ -844,6 +893,12 @@
 
     global.CleverGridValidator = {
         hasText,
+        DIFFICULTY_LABELS,
+        LEGACY_DIFFICULTY_VALUES,
+        normalizeDifficulty,
+        isStandardDifficulty,
+        isLegacyDifficulty,
+        formatDifficulty,
         parseSolution,
         decodeSolution,
         collectIds,

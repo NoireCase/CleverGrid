@@ -278,7 +278,7 @@ solution: {
 {
   "version": 1,
   "title": "雨夜美术馆失窃案",
-  "difficulty": "入门级",
+  "difficulty": "easy",
   "intro": "暴雨之夜，美术馆最珍贵的一幅画作不翼而飞。",
   "suspects": [],
   "weapons": [],

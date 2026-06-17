@@ -224,6 +224,10 @@
                 .replaceAll("'", '&#039;');
         }
 
+        function formatDifficulty(value) {
+            return window.CleverGridCaseLibrary.formatDifficulty(value);
+        }
+
         function filteredCases() {
             const query = searchEl.value.trim().toLowerCase();
             if (!query) return indexData.cases;
@@ -239,7 +243,7 @@
                 <tr class="case-row ${item.id === selectedId ? 'active' : ''}" data-id="${escapeHtml(item.id)}">
                     <td>${escapeHtml(item.id)}</td>
                     <td>${escapeHtml(item.title)}</td>
-                    <td>${escapeHtml(item.difficulty)}</td>
+                    <td>${escapeHtml(formatDifficulty(item.difficulty))}</td>
                     <td>${escapeHtml(item.file)}</td>
                 </tr>
             `).join('');
@@ -259,7 +263,7 @@
         function renderDetail(caseData) {
             detailEl.innerHTML = `
                 <h3>${escapeHtml(caseData.title)}</h3>
-                <p class="muted">${escapeHtml(caseData.difficulty)}</p>
+                <p class="muted">${escapeHtml(formatDifficulty(caseData.difficulty))}</p>
                 ${renderTags('Suspects', caseData.suspects)}
                 ${renderTags('Weapons', caseData.weapons)}
                 ${renderTags('Locations', caseData.locations)}

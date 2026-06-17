@@ -1,7 +1,7 @@
 {
   "version": 1,
   "title": "Missing Solution",
-  "difficulty": "test",
+  "difficulty": "easy",
   "intro": "Bad case: missing solution.",
   "suspects": [
     { "id": "S1", "name": "Suspect 1" },

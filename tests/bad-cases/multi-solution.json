@@ -1,7 +1,7 @@
 {
   "version": 1,
   "title": "Multiple Solutions",
-  "difficulty": "test",
+  "difficulty": "easy",
   "intro": "Bad case: rules allow multiple solutions.",
   "suspects": [
     { "id": "S1", "name": "Suspect 1" },

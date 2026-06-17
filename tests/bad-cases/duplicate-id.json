@@ -1,7 +1,7 @@
 {
   "version": 1,
   "title": "Duplicate ID",
-  "difficulty": "test",
+  "difficulty": "easy",
   "intro": "Bad case: duplicate suspect id.",
   "suspects": [
     { "id": "S1", "name": "Suspect 1" },

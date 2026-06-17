@@ -1,7 +1,7 @@
 {
   "version": 1,
   "title": "Old Solution Array",
-  "difficulty": "test",
+  "difficulty": "easy",
   "intro": "Bad case: old solution array format.",
   "suspects": [
     { "id": "S1", "name": "Suspect 1" },

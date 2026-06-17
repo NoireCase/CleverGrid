@@ -47,7 +47,7 @@ Minimum valid draft structure:
 ```json
 {
   "title": "",
-  "difficulty": "",
+  "difficulty": "easy",
   "suspects": [],
   "weapons": [],
   "locations": [],
@@ -67,6 +67,15 @@ Required fields:
 - `clues`
 - `rules`
 - `solution`
+
+Difficulty must use one of these internal enum values:
+
+- `easy`
+- `medium`
+- `hard`
+- `expert`
+
+Do not generate Chinese display labels such as `入门级`, `中级`, `进阶版`, or `专家级` as stored JSON values.
 
 Recommended fields:
 
@@ -232,6 +241,8 @@ Do not include comments.
 The case must follow these rules:
 - It must be importable by tools/uploader.html.
 - It must include title, difficulty, suspects, weapons, locations, clues, rules, solution, and fullTruth.
+- difficulty must be one of: easy, medium, hard, expert.
+- Do not use Chinese difficulty labels as stored values.
 - suspects, weapons, and locations must have the same count.
 - Every suspect, weapon, and location must have a unique id and a name.
 - Use suspect ids S1, S2, S3, S4.

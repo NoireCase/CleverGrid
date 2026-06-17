@@ -1,7 +1,7 @@
 {
   "version": 1,
   "title": "Wrong Solution",
-  "difficulty": "test",
+  "difficulty": "easy",
   "intro": "Bad case: rules have one unique solution, but solution is wrong.",
   "suspects": [
     { "id": "S1", "name": "Suspect 1" },

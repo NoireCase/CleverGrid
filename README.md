@@ -90,9 +90,11 @@ CleverGrid/
 │   ├── phase5.2-uploader-solver.test.js
 │   ├── phase5.3-case-library.test.js
 │   ├── phase5.3.3-bad-cases.test.js
+│   ├── phase5.3.5-difficulty.test.js
 │   └── bad-cases/              故意错误的案件测试集
 ├── docs/
 │   ├── ai-case-generation.md   AI 案件生成规范
+│   ├── prompts/                AI 案件生成 Prompt 模板库
 │   ├── case-schema.md         案件数据格式规范
 │   ├── case-template.md       案件编写规范
 │   └── example-case.md        示例案件模板
@@ -129,18 +131,44 @@ Solver 验证唯一解
 具体说明：
 
 1. 先阅读 `docs/case-schema.md`，确认字段格式和 Case Uploader 输出格式。
-2. 使用 `docs/ai-case-generation.md` 作为 AI 生成案件 JSON 的统一规范，案件 ID 可以留空或使用临时值。
-3. 打开 `tools/uploader.html`。
-4. 粘贴 JSON 或上传任意名称的 `.json` 文件。
-5. 确认 JSON 解析、格式校验、答案校验、唯一解验证全部通过。
-6. 点击“加入案件库”。
-7. 系统自动生成 `case-xxx`，写入 `cases/case-xxx.json`，并更新 `case-index.json`。
-8. 打开 `tools/validator.html` 检查正式案件库。
-9. 打开 `index.html` 试玩，确认案件可以正常完成。
+2. 使用 `docs/ai-case-generation.md` 作为 AI 生成案件 JSON 的统一规范。
+3. 从 `docs/prompts/` 选择合适的 Prompt 模板，让 AI 生成案件 JSON，案件 ID 可以留空或使用临时值。
+4. 打开 `tools/uploader.html`。
+5. 粘贴 JSON 或上传任意名称的 `.json` 文件。
+6. 确认 JSON 解析、格式校验、答案校验、唯一解验证全部通过。
+7. 点击“加入案件库”。
+8. 系统自动生成 `case-xxx`，写入 `cases/case-xxx.json`，并更新 `case-index.json`。
+9. 打开 `tools/validator.html` 检查正式案件库。
+10. 打开 `index.html` 试玩，确认案件可以正常完成。
 
 维护者新增案件时，建议先设计完整真相，再编写线索。不要先写线索，再拼凑答案。
 
 `clues` 面向玩家展示，可以写成自然语言；`rules` 面向 Validator、Solver 和 Case Uploader，是机器可读的结构化线索。当前游戏仍按字符串显示 `clues`，所以新增可玩案件暂时应继续使用字符串线索；5 个正式案件已经配置 `rules`。
+
+## Difficulty Standard
+
+案件 JSON 中的 `difficulty` 统一使用英文枚举，页面显示时再转换成中文：
+
+| 存储值 | 页面显示 |
+| --- | --- |
+| `easy` | 入门级 |
+| `medium` | 中级 |
+| `hard` | 进阶版 |
+| `expert` | 专家级 |
+
+新增案件和 AI 生成案件不要再使用 `入门级`、`中级`、`进阶版`、`专家级` 作为存储值。旧中文值仍可被 Validator 读取，但会显示迁移提醒。
+
+AI 案件生成规范见：
+
+```text
+docs/ai-case-generation.md
+```
+
+可直接复制使用的 Prompt 模板见：
+
+```text
+docs/prompts/
+```
 
 ## 案件校验工具
 
@@ -194,6 +222,7 @@ tools/validator.html
 node tests/phase5.2-uploader-solver.test.js
 node tests/phase5.3-case-library.test.js
 node tests/phase5.3.3-bad-cases.test.js
+node tests/phase5.3.5-difficulty.test.js
 ```
 
 `tests/bad-cases/` 中的 JSON 文件都是故意写错的案件，用来防止未来修改规则系统时漏检。

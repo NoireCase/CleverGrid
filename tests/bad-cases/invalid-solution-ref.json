@@ -1,7 +1,7 @@
 {
   "version": 1,
   "title": "Invalid Solution Reference",
-  "difficulty": "test",
+  "difficulty": "easy",
   "intro": "Bad case: solution references a missing suspect.",
   "suspects": [
     { "id": "S1", "name": "Suspect 1" },

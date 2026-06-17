@@ -18,7 +18,7 @@ function makeCase(overrides) {
         id: 'test-case',
         version: 1,
         title: '测试案件',
-        difficulty: '测试',
+        difficulty: 'easy',
         suspects: [
             { id: 'S1', name: '嫌疑人一' },
             { id: 'S2', name: '嫌疑人二' },

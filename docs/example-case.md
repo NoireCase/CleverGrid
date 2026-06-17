@@ -7,7 +7,7 @@
 ```text
 version：1
 title：雨夜美术馆失窃案
-difficulty：入门级
+difficulty：easy
 ```
 
 正式入库后，系统会自动生成文件名，例如：
@@ -171,7 +171,7 @@ matchesFullTruth: true
 {
   "version": 1,
   "title": "雨夜美术馆失窃案",
-  "difficulty": "入门级",
+  "difficulty": "easy",
   "intro": "暴雨之夜，美术馆最珍贵的一幅画作不翼而飞。监控只拍到一道模糊的身影从后门离开，真正带走画作的人是谁？",
   "suspects": [
     { "id": "S1", "name": "值夜班保安", "icon": "🧢", "desc": "负责夜间巡逻，声称整晚都在监控室。", "traits": "戴蓝色帽子" },

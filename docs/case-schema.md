@@ -17,7 +17,7 @@ cases/case-001.json
   "id": "case-001",
   "version": 1,
   "title": "雨夜美术馆失窃案",
-  "difficulty": "入门级",
+  "difficulty": "easy",
   "intro": "暴雨之夜，美术馆最珍贵的一幅画作不翼而飞。",
   "suspects": [],
   "weapons": [],
@@ -42,7 +42,7 @@ cases/case-001.json
     {
       "id": "case-001",
       "title": "雨夜美术馆失窃案",
-      "difficulty": "入门级",
+      "difficulty": "easy",
       "file": "cases/case-001.json"
     }
   ]
@@ -58,7 +58,20 @@ cases/case-001.json
 | `id` | string | 正式库必填 | 正式案件编号，格式为 `case-001`。Uploader 草稿可以不填，入库时自动生成。 |
 | `version` | number | 是 | 案件内容版本。首次发布为 `1`。 |
 | `title` | string | 是 | 玩家看到的案件标题。 |
-| `difficulty` | string | 是 | 难度展示文本，例如 `入门级`、`中级`、`进阶版`、`专家级`。 |
+| `difficulty` | string | 是 | 内部难度枚举，只允许 `easy`、`medium`、`hard`、`expert`。页面会映射为中文显示。 |
+
+## difficulty 标准
+
+案件 JSON 中统一存储英文枚举：
+
+| 存储值 | 页面显示 |
+| --- | --- |
+| `easy` | 入门级 |
+| `medium` | 中级 |
+| `hard` | 进阶版 |
+| `expert` | 专家级 |
+
+旧中文值仍可被 Validator 读取，但会显示 warning。新增案件和 AI 生成案件必须使用英文枚举。
 | `intro` | string | 是 | 案件开场描述。 |
 | `suspects` | array | 是 | 嫌疑人列表。 |
 | `weapons` | array | 是 | 凶器、道具或关键物品列表。 |
@@ -398,7 +411,7 @@ Uploader 校验顺序：
 {
   "version": 1,
   "title": "雨夜美术馆失窃案",
-  "difficulty": "入门级",
+  "difficulty": "easy",
   "intro": "暴雨之夜，美术馆最珍贵的一幅画作不翼而飞。",
   "suspects": [
     { "id": "S1", "name": "值夜班保安", "icon": "🧢", "desc": "负责夜间巡逻。", "traits": "戴蓝色帽子" },

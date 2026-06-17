@@ -1,7 +1,7 @@
 {
   "version": 1,
   "title": "No Solution",
-  "difficulty": "test",
+  "difficulty": "easy",
   "intro": "Bad case: contradictory rules.",
   "suspects": [
     { "id": "S1", "name": "Suspect 1" },

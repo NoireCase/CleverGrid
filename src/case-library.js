@@ -1,5 +1,17 @@
 (function (global) {
     const CASE_ID_PATTERN = /^case-(\d{3})$/;
+    const DIFFICULTY_LABELS = {
+        easy: '入门级',
+        medium: '中级',
+        hard: '进阶版',
+        expert: '专家级'
+    };
+    const LEGACY_DIFFICULTY_VALUES = {
+        '入门级': 'easy',
+        '中级': 'medium',
+        '进阶版': 'hard',
+        '专家级': 'expert'
+    };
 
     function clone(value) {
         return JSON.parse(JSON.stringify(value));
@@ -12,6 +24,17 @@
     function parseCaseNumber(id) {
         const match = typeof id === 'string' ? id.match(CASE_ID_PATTERN) : null;
         return match ? Number(match[1]) : 0;
+    }
+
+    function normalizeDifficulty(value) {
+        if (Object.prototype.hasOwnProperty.call(DIFFICULTY_LABELS, value)) return value;
+        if (Object.prototype.hasOwnProperty.call(LEGACY_DIFFICULTY_VALUES, value)) return LEGACY_DIFFICULTY_VALUES[value];
+        return value || '';
+    }
+
+    function formatDifficulty(value) {
+        const normalized = normalizeDifficulty(value);
+        return DIFFICULTY_LABELS[normalized] || value || '';
     }
 
     function sortIndex(index) {
@@ -43,6 +66,7 @@
     function normalizeCaseForLibrary(caseData, id) {
         const item = clone(caseData);
         item.id = id;
+        item.difficulty = normalizeDifficulty(item.difficulty);
         return item;
     }
 
@@ -50,7 +74,7 @@
         return {
             id,
             title: caseData.title || '',
-            difficulty: caseData.difficulty || '',
+            difficulty: normalizeDifficulty(caseData.difficulty),
             file: `cases/${id}.json`
         };
     }
@@ -180,6 +204,10 @@
 
     global.CleverGridCaseLibrary = {
         CASE_ID_PATTERN,
+        DIFFICULTY_LABELS,
+        LEGACY_DIFFICULTY_VALUES,
+        normalizeDifficulty,
+        formatDifficulty,
         normalizeIndex,
         sortIndex,
         getNextCaseId,

@@ -254,6 +254,7 @@
     <script src="../src/validator.js"></script>
     <script>
         const { validateCase } = window.CleverGridValidator;
+        const formatDifficulty = window.CleverGridCaseLibrary.formatDifficulty;
 
         function renderSummary(results) {
             const total = results.length;
@@ -283,7 +284,7 @@
                         <div>
                             <h2 class="case-title">CASE ${String(result.index + 1).padStart(2, '0')}：${result.title}</h2>
                             <div class="case-meta">
-                                难度：${result.difficulty} · 嫌疑人 ${result.counts.suspects} · 凶器 ${result.counts.weapons} · 地点 ${result.counts.locations} · 线索 ${result.counts.clues} · Rules ${result.counts.rules}
+                                难度：${formatDifficulty(result.difficulty)} · 嫌疑人 ${result.counts.suspects} · 凶器 ${result.counts.weapons} · 地点 ${result.counts.locations} · 线索 ${result.counts.clues} · Rules ${result.counts.rules}
                             </div>
                             <div class="case-meta">
                                 Solver：${result.solver.detail} · 解样例 ${result.solver.solutionCount} · ${result.solver.status === 'unique' ? (result.solver.matchesFullTruth ? '匹配 fullTruth' : '不匹配 fullTruth') : '未进行 fullTruth 对比'}

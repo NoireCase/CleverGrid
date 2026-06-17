@@ -23,6 +23,13 @@ function solutionToText(solution) {
     return parts.length === 3 ? parts.join('-') : '';
 }
 
+function formatDifficulty(difficulty) {
+    if (window.CleverGridCaseLibrary && typeof window.CleverGridCaseLibrary.formatDifficulty === 'function') {
+        return window.CleverGridCaseLibrary.formatDifficulty(difficulty);
+    }
+    return difficulty || '';
+}
+
 // GM Debug System
 const debugSystem = {
     buffer: [],
@@ -301,7 +308,8 @@ const game = {
         this.saveGlobal();
 
         const data = GAME_DATA[i];
-        document.getElementById('case-display-info').innerText = `CASE ${String(i+1).padStart(2, '0')}: ${data.title}`;
+        const difficultyText = formatDifficulty(data.difficulty);
+        document.getElementById('case-display-info').innerText = `CASE ${String(i+1).padStart(2, '0')}: ${data.title}${difficultyText ? ` · ${difficultyText}` : ''}`;
         document.getElementById('btn-prev').disabled = (i === 0);
 
         const isCompleted = this.isCaseSolved(i);
