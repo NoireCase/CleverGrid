@@ -38,41 +38,41 @@
 
     <div class="toolbar-container">
         <div class="tool-group">
-            <div class="tool-btn active" id="tool-pen" onclick="game.setTool('pen')">
-                ✒️<div class="tool-tooltip">钢笔 (确信)</div>
+            <div class="tool-btn active" id="tool-pen" onclick="game.setTool('pen')" role="button" aria-label="排除 / 标记" title="排除 / 标记">
+                ✒️<div class="tool-tooltip">排除 / 标记</div>
             </div>
-            <div class="tool-btn" id="tool-pencil" onclick="game.setTool('pencil')">
-                ✏️<div class="tool-tooltip">铅笔 (草稿)</div>
+            <div class="tool-btn" id="tool-pencil" onclick="game.setTool('pencil')" role="button" aria-label="标记" title="标记">
+                ✏️<div class="tool-tooltip">标记</div>
             </div>
-            <div class="tool-btn" id="tool-eraser" onclick="game.setTool('eraser')">
-                🧹<div class="tool-tooltip">橡皮擦 (拖拽)</div>
-            </div>
-        </div>
-        <div class="tool-group">
-            <div class="tool-btn" onclick="game.undo()">
-                ↩️<div class="tool-tooltip">上一步</div>
-            </div>
-            <div class="tool-btn" onclick="game.redo()">
-                ↪️<div class="tool-tooltip">下一步</div>
+            <div class="tool-btn" id="tool-eraser" onclick="game.setTool('eraser')" role="button" aria-label="清除" title="清除">
+                🧹<div class="tool-tooltip">清除</div>
             </div>
         </div>
         <div class="tool-group">
-            <div class="tool-btn" onclick="game.saveSnapshot()">
-                📥<div class="tool-tooltip">暂存笔记</div>
+            <div class="tool-btn" onclick="game.undo()" role="button" aria-label="撤销" title="撤销">
+                ↩️<div class="tool-tooltip">撤销</div>
             </div>
-            <div class="tool-btn" id="btn-load-snap" onclick="game.loadSnapshot()" disabled>
+            <div class="tool-btn" onclick="game.redo()" role="button" aria-label="重做" title="重做">
+                ↪️<div class="tool-tooltip">重做</div>
+            </div>
+        </div>
+        <div class="tool-group">
+            <div class="tool-btn" onclick="game.saveSnapshot()" role="button" aria-label="暂存推理表" title="暂存推理表">
+                📥<div class="tool-tooltip">暂存推理表</div>
+            </div>
+            <div class="tool-btn" id="btn-load-snap" onclick="game.loadSnapshot()" role="button" aria-label="读取暂存" title="读取暂存" disabled>
                 📤<div class="tool-tooltip">读取暂存</div>
             </div>
         </div>
         <div class="tool-group">
-            <div class="tool-btn" onclick="game.toggleSmartMode()">
+            <div class="tool-btn" onclick="game.toggleSmartMode()" role="button" aria-label="自动推理" title="自动推理">
                 🧠<div id="smart-indicator"></div>
-                <div class="tool-tooltip">智能辅助</div>
+                <div class="tool-tooltip">自动推理</div>
             </div>
         </div>
         <div class="tool-group" style="border:none;">
-            <div class="tool-btn" style="color: var(--ink-cross);" onclick="game.resetLevel()">
-                🗑️<div class="tool-tooltip">清空重来</div>
+            <div class="tool-btn" style="color: var(--ink-cross);" onclick="game.resetLevel()" role="button" aria-label="清空推理表" title="清空推理表">
+                🗑️<div class="tool-tooltip">清空推理表</div>
             </div>
         </div>
     </div>
@@ -127,6 +127,15 @@
         <!-- RIGHT: Clues -->
         <aside class="sidebar" id="clue-panel">
             <div class="section-label">CLUES</div>
+            <div class="clue-help" aria-label="推理步骤">
+                <div class="clue-help-title">推理步骤</div>
+                <div class="clue-help-steps">
+                    <span>① 阅读线索</span>
+                    <span>② 标记推理表</span>
+                    <span>③ 排除可能性</span>
+                    <span>④ 提交结案</span>
+                </div>
+            </div>
             <div id="clue-list"></div>
         </aside>
     </main>

@@ -30,6 +30,47 @@ function formatDifficulty(difficulty) {
     return difficulty || '';
 }
 
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    })[char]);
+}
+
+function getCaseClues(data) {
+    return Array.isArray(data && data.clues) ? data.clues : [];
+}
+
+function getClueText(clue) {
+    if (clue && typeof clue === 'object') return clue.text || clue.content || '';
+    return clue || '';
+}
+
+function formatDurationValue(value) {
+    if (value === undefined || value === null || value === '') return '';
+    if (typeof value === 'number' && Number.isFinite(value)) return `${value}分钟`;
+    return String(value);
+}
+
+function estimateDurationByClueCount(clueCount) {
+    if (clueCount <= 5) return '5-8分钟';
+    if (clueCount <= 10) return '10-15分钟';
+    if (clueCount <= 15) return '15-20分钟';
+    return '20-30分钟';
+}
+
+function getCaseDurationText(data) {
+    const durationFields = ['estimatedTime', 'estimatedDuration', 'estimatedMinutes', 'timeMinutes', 'duration', 'playTime'];
+    const explicitValue = durationFields
+        .map(field => data[field])
+        .find(value => value !== undefined && value !== null && value !== '');
+    const explicitDuration = formatDurationValue(explicitValue);
+    return explicitDuration || estimateDurationByClueCount(getCaseClues(data).length);
+}
+
 // GM Debug System
 const debugSystem = {
     buffer: [],
@@ -308,8 +349,15 @@ const game = {
         this.saveGlobal();
 
         const data = GAME_DATA[i];
-        const difficultyText = formatDifficulty(data.difficulty);
-        document.getElementById('case-display-info').innerText = `CASE ${String(i+1).padStart(2, '0')}: ${data.title}${difficultyText ? ` · ${difficultyText}` : ''}`;
+        const clueCount = getCaseClues(data).length;
+        const difficultyText = formatDifficulty(data.difficulty) || '未标注';
+        const durationText = getCaseDurationText(data);
+        document.getElementById('case-display-info').innerHTML = `
+            <span class="case-heading">CASE ${String(i+1).padStart(2, '0')}: ${escapeHtml(data.title || '未命名案件')}</span>
+            <span class="case-meta">难度：${escapeHtml(difficultyText)}</span>
+            <span class="case-meta">线索：${clueCount}</span>
+            <span class="case-meta">预计：${escapeHtml(durationText)}</span>
+        `;
         document.getElementById('btn-prev').disabled = (i === 0);
 
         const isCompleted = this.isCaseSolved(i);
@@ -465,9 +513,12 @@ const game = {
 
     renderClues() {
         const data = GAME_DATA[this.idx];
-        document.getElementById('clue-list').innerHTML = data.clues.map((c, idx) => `
+        document.getElementById('clue-list').innerHTML = getCaseClues(data).map((clue, idx) => `
             <div class="clue-item ${this.clueState.includes(idx) ? 'done' : ''}"
-                 onclick="game.toggleClue(${idx})">${c}</div>
+                 onclick="game.toggleClue(${idx})">
+                <div class="clue-number">线索${String(idx + 1).padStart(2, '0')}</div>
+                <div class="clue-text">${escapeHtml(getClueText(clue))}</div>
+            </div>
         `).join('');
     },
 
