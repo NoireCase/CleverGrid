@@ -97,5 +97,20 @@ codex/validator-engine
 - 后端依赖。
 - React/Vue 重构。
 - 在 Author Studio 上继续堆大量编辑功能来绕过 Validator Engine。
+- 在 Author Studio 内重复实现 Solver 或 Validator 逻辑。
+
+未来最容易出现的错误路线是把 Author Studio 做成同时包含校验、Solver、Validator 和 Publisher 的巨型页面，最终变成 2000+ 行、难维护、难复用的工具。
+
+正确架构应该保持单向依赖：
+
+```text
+Author Studio
+↓
+Validator Engine
+↓
+Solver
+↓
+Publisher
+```
 
 正确方向是先稳定 JSON 数据流和 Validator Engine，再建设 Publisher，最后接入 AI Generator。
