@@ -1,0 +1,2165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Author Studio</title>
+    <style>
+        :root {
+            --bg-app: #D8C3A0;
+            --bg-panel: #F6EBD6;
+            --bg-paper: #FFF8E8;
+            --bg-subtle: #EAD9B9;
+            --bg-active: #F4E1B3;
+            --bg-leather: #3B2418;
+            --text-primary: #2B2119;
+            --text-secondary: #7C6752;
+            --text-disabled: #B8A58B;
+            --accent-focus: #B3873A;
+            --accent-brass: #C39A4A;
+            --border-main: #C7AA7A;
+            --border-paper: #D8BD8C;
+            --shadow-card: 0 2px 5px rgba(58, 36, 24, 0.10), 0 1px 1px rgba(58, 36, 24, 0.12);
+            --font-sans: "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+            --font-mono: "Roboto Mono", "Courier New", monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            background:
+                radial-gradient(circle at 16% 12%, rgba(255, 248, 232, 0.32), transparent 30%),
+                linear-gradient(135deg, #C19A67 0%, var(--bg-app) 42%, #B78D57 100%);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            line-height: 1.6;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .topbar {
+            min-height: 64px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            padding: 14px 24px;
+            background:
+                linear-gradient(180deg, rgba(255, 248, 232, 0.92) 0%, rgba(238, 219, 185, 0.95) 100%);
+            border-bottom: 2px solid #8C653A;
+            box-shadow: 0 2px 10px rgba(59, 36, 24, 0.18);
+        }
+
+        .brand {
+            min-width: 0;
+        }
+
+        h1,
+        h2,
+        h3,
+        p {
+            margin: 0;
+        }
+
+        h1 {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            line-height: 1.25;
+            letter-spacing: 0;
+        }
+
+        .subtitle {
+            margin-top: 4px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .top-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .nav-btn,
+        button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 36px;
+            border: 1px solid rgba(92, 61, 38, 0.45);
+            border-radius: 4px;
+            background: rgba(255, 248, 232, 0.42);
+            color: var(--text-primary);
+            font: inherit;
+            font-size: 0.86rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .nav-btn,
+        button {
+            padding: 7px 14px;
+        }
+
+        .nav-btn:hover,
+        button:hover {
+            background: var(--bg-paper);
+            border-color: var(--accent-focus);
+        }
+
+        button.primary {
+            background: var(--bg-leather);
+            color: #FFF8E8;
+            border-color: var(--accent-brass);
+            box-shadow: inset 0 0 0 1px rgba(195, 154, 74, 0.18);
+        }
+
+        button.primary:hover {
+            background: #2F1D14;
+        }
+
+        .nav-btn .lucide-icon,
+        button .lucide-icon,
+        .panel-title .lucide-icon {
+            width: 18px;
+            height: 18px;
+            display: block;
+            flex-shrink: 0;
+        }
+
+        .toolbar-strip {
+            min-height: 48px;
+            background: linear-gradient(180deg, rgba(59, 36, 24, 0.96) 0%, rgba(47, 29, 20, 0.96) 100%);
+            border-bottom: 1px solid rgba(123, 84, 46, 0.72);
+            color: #EBD9B7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 8px 20px;
+            font-size: 0.82rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+
+        .page {
+            width: min(1280px, calc(100% - 40px));
+            margin: 0 auto;
+            padding: 28px 0 48px;
+        }
+
+        .studio-layout {
+            display: grid;
+            grid-template-columns: minmax(240px, 0.8fr) minmax(360px, 1.35fr) minmax(260px, 0.85fr);
+            gap: 16px;
+            align-items: start;
+        }
+
+        .panel {
+            border: 1px solid var(--border-paper);
+            border-radius: 8px;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.38) 0%, rgba(255, 248, 232, 0.14) 100%),
+                var(--bg-panel);
+            box-shadow: var(--shadow-card);
+            padding: 18px;
+        }
+
+        .panel + .panel,
+        .section-card + .section-card {
+            margin-top: 16px;
+        }
+
+        .panel-title {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            margin-bottom: 6px;
+            color: #3A2418;
+            font-size: 1.05rem;
+        }
+
+        .panel-title .lucide-icon {
+            width: 21px;
+            height: 21px;
+            color: #5A3A24;
+        }
+
+        .panel-note {
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            font-weight: 600;
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 13px;
+            margin-top: 16px;
+        }
+
+        label {
+            display: grid;
+            gap: 5px;
+            color: #5A3A24;
+            font-size: 0.82rem;
+            font-weight: 850;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            min-height: 40px;
+            border: 1px solid var(--border-paper);
+            border-radius: 6px;
+            padding: 8px 11px;
+            background: rgba(255, 248, 232, 0.78);
+            color: var(--text-primary);
+            font: inherit;
+            font-weight: 650;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.62);
+        }
+
+        textarea {
+            min-height: 82px;
+            resize: vertical;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: 2px solid rgba(179, 135, 58, 0.22);
+            border-color: var(--accent-focus);
+            background: var(--bg-paper);
+        }
+
+        .section-card {
+            border: 1px solid rgba(199, 170, 122, 0.76);
+            border-radius: 8px;
+            background: rgba(255, 248, 232, 0.44);
+            padding: 14px;
+        }
+
+        .tab-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 16px 0;
+            border-bottom: 1px solid rgba(199, 170, 122, 0.62);
+            padding-bottom: 10px;
+        }
+
+        .tab-btn {
+            min-height: 34px;
+            padding: 6px 12px;
+            background: rgba(255, 248, 232, 0.42);
+            color: #5A3A24;
+        }
+
+        .tab-btn.active {
+            background: var(--bg-leather);
+            color: #FFF8E8;
+            border-color: var(--accent-brass);
+            box-shadow: inset 0 0 0 1px rgba(195, 154, 74, 0.18);
+        }
+
+        .tab-panel[hidden] {
+            display: none;
+        }
+
+        .tab-panel .section-card:first-child {
+            margin-top: 0;
+        }
+
+        .solution-card {
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.44), rgba(255, 248, 232, 0.18)),
+                rgba(244, 225, 179, 0.44);
+        }
+
+        .clue-editor {
+            margin-top: 16px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .section-heading {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #3A2418;
+            font-size: 0.98rem;
+            font-weight: 850;
+        }
+
+        .section-heading .lucide-icon {
+            width: 19px;
+            height: 19px;
+            color: #5A3A24;
+        }
+
+        .item-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .object-card {
+            display: grid;
+            gap: 12px;
+            border: 1px solid rgba(199, 170, 122, 0.72);
+            border-radius: 8px;
+            padding: 12px;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.44), rgba(255, 248, 232, 0.18)),
+                rgba(255, 248, 232, 0.54);
+        }
+
+        .clue-card {
+            margin-top: 12px;
+        }
+
+        .object-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .object-id {
+            display: inline-flex;
+            align-items: center;
+            min-height: 26px;
+            border: 1px solid rgba(179, 135, 58, 0.40);
+            border-radius: 4px;
+            padding: 3px 8px;
+            background: rgba(234, 217, 185, 0.74);
+            color: #5A3A24;
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            font-weight: 850;
+        }
+
+        .object-fields {
+            display: grid;
+            gap: 10px;
+        }
+
+        .solution-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .clue-fields {
+            display: grid;
+            grid-template-columns: minmax(180px, 0.6fr) minmax(0, 1.4fr);
+            gap: 12px;
+        }
+
+        .clue-text {
+            min-height: 122px;
+        }
+
+        .clue-note {
+            min-height: 82px;
+        }
+
+        .clue-rule-section {
+            display: grid;
+            gap: 10px;
+            margin-top: 4px;
+            border: 1px solid rgba(199, 170, 122, 0.52);
+            border-radius: 6px;
+            padding: 10px;
+            background: rgba(234, 217, 185, 0.34);
+        }
+
+        .clue-rule-title {
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            font-weight: 900;
+        }
+
+        .rule-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .rule-grid .rule-kind-field {
+            grid-column: 1 / -1;
+        }
+
+        .icon-btn {
+            width: 38px;
+            min-height: 38px;
+            padding: 0;
+        }
+
+        .delete-btn {
+            min-height: 32px;
+            padding: 5px 10px;
+            background: rgba(255, 248, 232, 0.42);
+            color: #6F4A31;
+            font-size: 0.78rem;
+        }
+
+        .delete-btn:hover {
+            background: rgba(255, 241, 238, 0.86);
+            border-color: rgba(142, 47, 36, 0.42);
+            color: #8E2F24;
+        }
+
+        .icon-btn .lucide-icon {
+            width: 17px;
+            height: 17px;
+        }
+
+        .preview-title {
+            margin-top: 12px;
+            font-size: 1.18rem;
+            line-height: 1.35;
+        }
+
+        .preview-number {
+            margin-top: 2px;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+            font-size: 0.86rem;
+            font-weight: 850;
+        }
+
+        .preview-summary {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+            margin: 16px 0;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(199, 170, 122, 0.72);
+            border-radius: 6px;
+            padding: 10px;
+            background: rgba(255, 248, 232, 0.58);
+        }
+
+        .summary-label {
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            font-weight: 800;
+        }
+
+        .summary-value {
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-weight: 850;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            width: fit-content;
+            min-height: 28px;
+            border: 1px solid rgba(179, 135, 58, 0.40);
+            border-radius: 999px;
+            padding: 4px 10px;
+            background: var(--bg-active);
+            color: #5A3A24;
+            font-size: 0.8rem;
+            font-weight: 850;
+        }
+
+        .flow-list {
+            display: grid;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .data-flow-details summary {
+            cursor: pointer;
+            list-style: none;
+        }
+
+        .data-flow-details summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .data-flow-details .panel-title {
+            margin-bottom: 0;
+        }
+
+        .flow-item {
+            border: 1px solid rgba(199, 170, 122, 0.72);
+            border-radius: 6px;
+            padding: 10px;
+            background: rgba(255, 248, 232, 0.48);
+        }
+
+        .completion-list {
+            display: grid;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .completion-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(199, 170, 122, 0.72);
+            border-radius: 6px;
+            padding: 8px 10px;
+            background: rgba(255, 248, 232, 0.48);
+        }
+
+        .completion-label {
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            font-weight: 800;
+        }
+
+        .completion-status {
+            flex-shrink: 0;
+            border: 1px solid rgba(179, 135, 58, 0.38);
+            border-radius: 999px;
+            padding: 3px 8px;
+            background: rgba(234, 217, 185, 0.72);
+            color: #5A3A24;
+            font-size: 0.76rem;
+            font-weight: 850;
+        }
+
+        .completion-status.done {
+            border-color: rgba(47, 104, 68, 0.38);
+            background: rgba(237, 248, 242, 0.72);
+            color: #2F6844;
+        }
+
+        .validation-summary {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .validation-count,
+        .validation-group,
+        .validation-item {
+            border: 1px solid rgba(199, 170, 122, 0.72);
+            border-radius: 6px;
+            background: rgba(255, 248, 232, 0.48);
+        }
+
+        .validation-count {
+            display: grid;
+            gap: 2px;
+            padding: 10px;
+        }
+
+        .validation-count span {
+            color: var(--text-secondary);
+            font-size: 0.76rem;
+            font-weight: 800;
+        }
+
+        .validation-count strong {
+            color: var(--text-primary);
+            font-size: 1.08rem;
+            font-weight: 900;
+        }
+
+        .validation-conclusion,
+        .validation-hint {
+            margin-top: 12px;
+            border: 1px solid rgba(179, 135, 58, 0.36);
+            border-radius: 6px;
+            padding: 10px 12px;
+            background: rgba(244, 225, 179, 0.52);
+            color: #5A3A24;
+            font-size: 0.84rem;
+            font-weight: 850;
+        }
+
+        .validation-hint {
+            margin-bottom: 12px;
+        }
+
+        .validation-conclusion.error,
+        .validation-hint.error {
+            border-color: rgba(142, 47, 36, 0.34);
+            background: rgba(255, 241, 238, 0.76);
+            color: #8E2F24;
+        }
+
+        .validation-conclusion.warning,
+        .validation-hint.warning {
+            border-color: rgba(168, 113, 31, 0.36);
+            background: rgba(255, 245, 221, 0.78);
+            color: #7A4F14;
+        }
+
+        .validation-conclusion.pass,
+        .validation-hint.pass {
+            border-color: rgba(47, 104, 68, 0.34);
+            background: rgba(237, 248, 242, 0.76);
+            color: #2F6844;
+        }
+
+        .validation-groups {
+            display: grid;
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .validation-group {
+            padding: 12px;
+        }
+
+        .validation-group-title {
+            color: #3A2418;
+            font-size: 0.88rem;
+            font-weight: 900;
+        }
+
+        .validation-list {
+            display: grid;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .validation-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 8px 10px;
+        }
+
+        .validation-badge {
+            flex-shrink: 0;
+            border: 1px solid rgba(179, 135, 58, 0.38);
+            border-radius: 999px;
+            padding: 2px 7px;
+            background: rgba(234, 217, 185, 0.72);
+            color: #5A3A24;
+            font-size: 0.72rem;
+            font-weight: 900;
+            line-height: 1.5;
+        }
+
+        .validation-badge.error {
+            border-color: rgba(142, 47, 36, 0.34);
+            background: rgba(255, 241, 238, 0.86);
+            color: #8E2F24;
+        }
+
+        .validation-badge.warning {
+            border-color: rgba(168, 113, 31, 0.34);
+            background: rgba(255, 245, 221, 0.86);
+            color: #7A4F14;
+        }
+
+        .validation-badge.pass {
+            border-color: rgba(47, 104, 68, 0.34);
+            background: rgba(237, 248, 242, 0.86);
+            color: #2F6844;
+        }
+
+        .validation-message {
+            color: var(--text-primary);
+            font-size: 0.84rem;
+            font-weight: 750;
+        }
+
+        .json-output {
+            width: 100%;
+            min-height: 260px;
+            max-height: 360px;
+            margin-top: 14px;
+            overflow: auto;
+            white-space: pre;
+            font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+
+        .export-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .export-status {
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            font-weight: 800;
+        }
+
+        .flow-label {
+            display: block;
+            color: #5A3A24;
+            font-size: 0.8rem;
+            font-weight: 850;
+        }
+
+        .flow-text {
+            display: block;
+            margin-top: 2px;
+            color: var(--text-secondary);
+            font-size: 0.84rem;
+            font-weight: 650;
+        }
+
+        @media (max-width: 1040px) {
+            .studio-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .right-column {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+                gap: 16px;
+            }
+
+            .right-column .panel + .panel {
+                margin-top: 0;
+            }
+        }
+
+        @media (max-width: 680px) {
+            .topbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .top-actions {
+                justify-content: flex-start;
+            }
+
+            .page {
+                width: min(100% - 28px, 1280px);
+                padding-top: 22px;
+            }
+
+            .right-column {
+                display: block;
+            }
+
+            .right-column .panel + .panel {
+                margin-top: 16px;
+            }
+
+            .tab-nav {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                padding-bottom: 10px;
+            }
+
+            .tab-btn {
+                flex-shrink: 0;
+            }
+
+            .section-header {
+                grid-template-columns: 1fr;
+                align-items: stretch;
+            }
+
+            .section-header {
+                display: grid;
+            }
+
+            .object-card-header {
+                align-items: flex-start;
+            }
+
+            .solution-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .clue-fields {
+                grid-template-columns: 1fr;
+            }
+
+            .rule-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .validation-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <h1>Author Studio</h1>
+            <p class="subtitle">创建、编辑并校验 CleverGrid 案件。</p>
+        </div>
+        <nav class="top-actions" aria-label="页面导航">
+            <a class="nav-btn" href="index.html">
+                <span data-lucide="undo" aria-label="返回工具中心"></span>
+                返回工具中心
+            </a>
+        </nav>
+    </header>
+
+    <div class="toolbar-strip">AUTHOR STUDIO</div>
+
+    <main class="page">
+        <div class="studio-layout">
+            <section class="panel" aria-labelledby="case-info-title">
+                <h2 class="panel-title" id="case-info-title">
+                    <span data-lucide="bookOpen" aria-hidden="true"></span>
+                    案件信息
+                </h2>
+                <p class="panel-note">第一版只收集创作所需的基础信息，不会保存或发布。</p>
+
+                <div class="form-grid">
+                    <label>
+                        案件标题
+                        <input id="case-title" type="text" placeholder="例如：午夜图书馆谜案">
+                    </label>
+                    <label>
+                        案件编号
+                        <input id="case-id" type="text" placeholder="例如：case-draft-001">
+                    </label>
+                    <label>
+                        作者
+                        <input id="case-author" type="text" placeholder="例如：Author Studio">
+                    </label>
+                    <label>
+                        难度
+                        <select id="case-difficulty">
+                            <option value="">请选择难度</option>
+                            <option value="easy">Easy</option>
+                            <option value="medium">Medium</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </label>
+                    <label>
+                        预计时长
+                        <input id="estimated-time" type="text" placeholder="例如：15 分钟">
+                    </label>
+                </div>
+            </section>
+
+            <section class="panel" aria-labelledby="case-content-title">
+                <h2 class="panel-title" id="case-content-title">
+                    <span data-lucide="pencil" aria-hidden="true"></span>
+                    案件内容
+                </h2>
+                <p class="panel-note">按阶段编辑案件内容，切换分段不会重置当前草稿。</p>
+
+                <nav class="tab-nav" aria-label="案件编辑分段">
+                    <button class="tab-btn active" type="button" data-tab-target="objects-panel" aria-selected="true">基础对象</button>
+                    <button class="tab-btn" type="button" data-tab-target="solution-panel" aria-selected="false">案件答案</button>
+                    <button class="tab-btn" type="button" data-tab-target="clues-panel" aria-selected="false">线索编辑</button>
+                    <button class="tab-btn" type="button" data-tab-target="validation-panel" aria-selected="false">草稿校验</button>
+                    <button class="tab-btn" type="button" data-tab-target="json-panel" aria-selected="false">JSON 导出</button>
+                </nav>
+
+                <div class="tab-panel" id="objects-panel" data-tab-panel>
+                    <section class="section-card" aria-labelledby="suspects-title">
+                        <div class="section-header">
+                            <h3 class="section-heading" id="suspects-title">
+                                <span data-lucide="user" aria-hidden="true"></span>
+                                嫌疑人
+                            </h3>
+                            <button class="primary" type="button" data-add="suspects">新增嫌疑人</button>
+                        </div>
+                        <div class="item-list" id="suspects-list"></div>
+                    </section>
+
+                    <section class="section-card" aria-labelledby="weapons-title">
+                        <div class="section-header">
+                            <h3 class="section-heading" id="weapons-title">
+                                <span data-lucide="sword" aria-hidden="true"></span>
+                                凶器
+                            </h3>
+                            <button class="primary" type="button" data-add="weapons">新增凶器</button>
+                        </div>
+                        <div class="item-list" id="weapons-list"></div>
+                    </section>
+
+                    <section class="section-card" aria-labelledby="locations-title">
+                        <div class="section-header">
+                            <h3 class="section-heading" id="locations-title">
+                                <span data-lucide="mapPin" aria-hidden="true"></span>
+                                地点
+                            </h3>
+                            <button class="primary" type="button" data-add="locations">新增地点</button>
+                        </div>
+                        <div class="item-list" id="locations-list"></div>
+                    </section>
+                </div>
+
+                <div class="tab-panel" id="solution-panel" data-tab-panel hidden>
+                    <section class="section-card solution-card" aria-labelledby="solution-title">
+                        <div class="section-header">
+                            <div>
+                                <h3 class="section-heading" id="solution-title">
+                                    <span data-lucide="target" aria-hidden="true"></span>
+                                    案件答案
+                                </h3>
+                                <p class="panel-note">请选择本案的真实凶手、凶器和地点。答案只用于后续校验，不会直接展示给玩家。</p>
+                            </div>
+                        </div>
+                        <div class="solution-grid">
+                            <label>
+                                真凶
+                                <select id="solution-suspect">
+                                    <option value="">请选择真凶</option>
+                                </select>
+                            </label>
+                            <label>
+                                凶器
+                                <select id="solution-weapon">
+                                    <option value="">请选择凶器</option>
+                                </select>
+                            </label>
+                            <label>
+                                地点
+                                <select id="solution-location">
+                                    <option value="">请选择地点</option>
+                                </select>
+                            </label>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="tab-panel" id="clues-panel" data-tab-panel hidden>
+                    <section class="section-card clue-editor" aria-labelledby="clue-editor-title">
+                        <div class="section-header">
+                            <div>
+                                <h3 class="section-heading" id="clue-editor-title">
+                                    <span data-lucide="bookOpen" aria-hidden="true"></span>
+                                    线索编辑器
+                                </h3>
+                                <p class="panel-note">用于录入玩家可见线索。当前阶段只保存文本和分类，不进行自动逻辑解析。</p>
+                            </div>
+                            <button class="primary" type="button" id="add-clue-button">新增线索</button>
+                        </div>
+                        <div class="item-list" id="clues-list"></div>
+                    </section>
+                </div>
+
+                <div class="tab-panel" id="validation-panel" data-tab-panel hidden>
+                    <section class="section-card" aria-labelledby="draft-validation-title">
+                        <h3 class="section-heading" id="draft-validation-title">
+                            <span data-lucide="search" aria-hidden="true"></span>
+                            草稿校验
+                        </h3>
+                        <p class="panel-note">检查当前草稿是否具备进入 JSON 导出和后续正式校验的基础条件。</p>
+
+                        <div class="validation-summary" aria-label="草稿校验摘要">
+                            <div class="validation-count">
+                                <span>错误数量</span>
+                                <strong id="validation-error-count">0</strong>
+                            </div>
+                            <div class="validation-count">
+                                <span>警告数量</span>
+                                <strong id="validation-warning-count">0</strong>
+                            </div>
+                            <div class="validation-count">
+                                <span>通过项数量</span>
+                                <strong id="validation-pass-count">0</strong>
+                            </div>
+                        </div>
+
+                        <p class="validation-conclusion" id="validation-conclusion" aria-live="polite"></p>
+                        <div class="validation-groups" id="validation-groups"></div>
+                    </section>
+                </div>
+
+                <div class="tab-panel" id="json-panel" data-tab-panel hidden>
+                    <section class="section-card" aria-labelledby="draft-json-title">
+                        <h3 class="section-heading" id="draft-json-title">
+                            <span data-lucide="download" aria-hidden="true"></span>
+                            草稿 JSON
+                        </h3>
+                        <p class="panel-note">当前 JSON 仅用于预览、复制和下载，不会自动发布。</p>
+
+                        <p class="validation-hint" id="json-validation-hint" aria-live="polite"></p>
+
+                        <div class="completion-list" aria-label="草稿完整性提示">
+                            <div class="completion-row">
+                                <span class="completion-label">基础信息</span>
+                                <span class="completion-status" id="basic-info-status">未完成</span>
+                            </div>
+                            <div class="completion-row">
+                                <span class="completion-label">三类对象</span>
+                                <span class="completion-status" id="objects-status">未完成</span>
+                            </div>
+                            <div class="completion-row">
+                                <span class="completion-label">答案设置</span>
+                                <span class="completion-status" id="draft-solution-status">未完成</span>
+                            </div>
+                            <div class="completion-row">
+                                <span class="completion-label">线索内容</span>
+                                <span class="completion-status" id="draft-clues-status">未完成</span>
+                            </div>
+                        </div>
+
+                        <textarea class="json-output" id="draft-json-output" readonly spellcheck="false" aria-label="草稿 JSON 预览"></textarea>
+
+                        <div class="export-actions">
+                            <button type="button" id="copy-json-button">复制 JSON</button>
+                            <button type="button" id="download-json-button">下载 JSON</button>
+                            <span class="export-status" id="json-export-status" aria-live="polite"></span>
+                        </div>
+                    </section>
+                </div>
+            </section>
+
+            <aside class="right-column" aria-label="预览与数据流">
+                <section class="panel" aria-labelledby="preview-title">
+                    <h2 class="panel-title" id="preview-title">
+                        <span data-lucide="library" aria-hidden="true"></span>
+                        实时预览
+                    </h2>
+                    <p class="preview-title" id="preview-case-title">未命名案件</p>
+                    <p class="preview-number" id="preview-case-id">未设置编号</p>
+
+                    <div class="preview-summary" aria-label="案件内容统计">
+                        <div class="summary-item">
+                            <span class="summary-label">嫌疑人数</span>
+                            <span class="summary-value" id="suspects-count">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">凶器数量</span>
+                            <span class="summary-value" id="weapons-count">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">地点数量</span>
+                            <span class="summary-value" id="locations-count">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">线索数量</span>
+                            <span class="summary-value" id="clues-count">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">结构化线索</span>
+                            <span class="summary-value" id="structured-clues-count">0 / 0</span>
+                        </div>
+                    </div>
+
+                    <div class="summary-item">
+                        <span class="summary-label">当前状态</span>
+                        <span class="status-pill" id="case-status">未开始</span>
+                    </div>
+
+                    <div class="summary-item">
+                        <span class="summary-label">答案设置</span>
+                        <span class="status-pill" id="solution-status">未完成</span>
+                    </div>
+
+                    <div class="summary-item">
+                        <span class="summary-label">草稿校验</span>
+                        <span class="status-pill" id="draft-validation-status">未通过</span>
+                    </div>
+                </section>
+
+                <details class="panel data-flow-details">
+                    <summary>
+                        <h2 class="panel-title" id="data-flow-title">
+                            <span data-lucide="brainCircuit" aria-hidden="true"></span>
+                            数据流规划
+                        </h2>
+                    </summary>
+                    <p class="panel-note">当前页面只维护浏览器内的草稿状态，后续工具会按阶段接入。</p>
+                    <div class="flow-list">
+                        <div class="flow-item">
+                            <span class="flow-label">1. AuthorStudioState</span>
+                            <span class="flow-text">统一收集案件信息与三类对象列表。</span>
+                        </div>
+                        <div class="flow-item">
+                            <span class="flow-label">2. 预览层</span>
+                            <span class="flow-text">根据状态显示标题、数量和创作进度。</span>
+                        </div>
+                        <div class="flow-item">
+                            <span class="flow-label">3. 后续扩展</span>
+                            <span class="flow-text">再接入线索、校验、导出、发布等独立模块。</span>
+                        </div>
+                    </div>
+                </details>
+            </aside>
+        </div>
+    </main>
+
+    <script src="../src/lucide-icons.js"></script>
+    <script>
+        const AuthorStudioState = {
+            title: '',
+            caseId: '',
+            author: '',
+            difficulty: '',
+            estimatedTime: '',
+            suspects: [],
+            weapons: [],
+            locations: [],
+            solution: {
+                suspect: '',
+                weapon: '',
+                location: ''
+            },
+            clues: []
+        };
+
+        const entityLabels = {
+            suspects: '嫌疑人',
+            weapons: '凶器',
+            locations: '地点'
+        };
+
+        const solutionKeys = {
+            suspects: 'suspect',
+            weapons: 'weapon',
+            locations: 'location'
+        };
+
+        const solutionFallbackNames = {
+            suspects: '未命名嫌疑人',
+            weapons: '未命名凶器',
+            locations: '未命名地点'
+        };
+
+        const entityPrefixes = {
+            suspects: 'S',
+            weapons: 'W',
+            locations: 'L'
+        };
+
+        const clueTypeLabels = {
+            general: '普通线索',
+            positive: '直接关联',
+            negative: '排除关系',
+            exclusive: '互斥限制'
+        };
+
+        const ruleKindLabels = {
+            '': '不设置规则',
+            is: '直接关联',
+            not: '排除关系'
+        };
+
+        const fieldMap = {
+            title: document.getElementById('case-title'),
+            caseId: document.getElementById('case-id'),
+            author: document.getElementById('case-author'),
+            difficulty: document.getElementById('case-difficulty'),
+            estimatedTime: document.getElementById('estimated-time')
+        };
+
+        const solutionFieldMap = {
+            suspect: document.getElementById('solution-suspect'),
+            weapon: document.getElementById('solution-weapon'),
+            location: document.getElementById('solution-location')
+        };
+
+        const cluesListEl = document.getElementById('clues-list');
+        const addClueButtonEl = document.getElementById('add-clue-button');
+        const draftJsonOutputEl = document.getElementById('draft-json-output');
+        const jsonExportStatusEl = document.getElementById('json-export-status');
+        const tabButtons = document.querySelectorAll('[data-tab-target]');
+        const tabPanels = document.querySelectorAll('[data-tab-panel]');
+        const completionStatusEls = {
+            basic: document.getElementById('basic-info-status'),
+            objects: document.getElementById('objects-status'),
+            solution: document.getElementById('draft-solution-status'),
+            clues: document.getElementById('draft-clues-status')
+        };
+        const validationSummaryEls = {
+            errors: document.getElementById('validation-error-count'),
+            warnings: document.getElementById('validation-warning-count'),
+            passes: document.getElementById('validation-pass-count')
+        };
+        const validationConclusionEl = document.getElementById('validation-conclusion');
+        const validationGroupsEl = document.getElementById('validation-groups');
+        const draftValidationStatusEl = document.getElementById('draft-validation-status');
+        const jsonValidationHintEl = document.getElementById('json-validation-hint');
+        const validationTargetLabels = {
+            basic: '基础信息',
+            objects: '三类对象',
+            solution: '案件答案',
+            clues: '线索内容'
+        };
+        const validationTargetOrder = ['basic', 'objects', 'solution', 'clues'];
+        const validationLevelLabels = {
+            error: '错误',
+            warning: '警告',
+            pass: '通过'
+        };
+
+        function hydrateStaticIcons() {
+            if (!window.CleverGridIcons) return;
+
+            document.querySelectorAll('[data-lucide]').forEach(el => {
+                const key = el.getAttribute('data-lucide');
+                const iconName = window.CleverGridIcons.toolIconMap[key] || key;
+                const label = el.getAttribute('aria-label') || '';
+                el.innerHTML = window.CleverGridIcons.render(iconName, { label });
+            });
+        }
+
+        function getDraftStatus() {
+            const hasTitle = Boolean(AuthorStudioState.title);
+            const objectCount = AuthorStudioState.suspects.length
+                + AuthorStudioState.weapons.length
+                + AuthorStudioState.locations.length;
+            const hasProgress = hasTitle || objectCount > 0 || AuthorStudioState.clues.length > 0;
+            const hasMinimumShape = AuthorStudioState.title
+                && AuthorStudioState.suspects.length
+                && AuthorStudioState.weapons.length
+                && AuthorStudioState.locations.length;
+
+            if (!hasProgress) return '未开始';
+            if (!hasMinimumShape) return '编辑中';
+            if (!isSolutionComplete()) return '待设置答案';
+            if (AuthorStudioState.clues.length === 0) return '待补充线索';
+            return '待校验';
+        }
+
+        function isSolutionComplete() {
+            return Boolean(
+                AuthorStudioState.solution.suspect
+                && AuthorStudioState.solution.weapon
+                && AuthorStudioState.solution.location
+            );
+        }
+
+        function isBasicInfoComplete() {
+            return Boolean(
+                AuthorStudioState.title
+                && AuthorStudioState.caseId
+                && AuthorStudioState.author
+                && AuthorStudioState.difficulty
+                && AuthorStudioState.estimatedTime
+            );
+        }
+
+        function areObjectsComplete() {
+            return Boolean(
+                AuthorStudioState.suspects.length
+                && AuthorStudioState.weapons.length
+                && AuthorStudioState.locations.length
+            );
+        }
+
+        function areCluesComplete() {
+            return AuthorStudioState.clues.length > 0
+                && AuthorStudioState.clues.every(clue => clue.text);
+        }
+
+        function doesRuleReferenceExist(group, id) {
+            return Boolean(
+                group
+                && id
+                && AuthorStudioState[group]
+                && AuthorStudioState[group].some(item => item.id === id)
+            );
+        }
+
+        function isStructuredRuleComplete(clue) {
+            const rule = ensureClueRule(clue);
+
+            return Boolean(
+                rule.kind
+                && rule.left.group
+                && rule.left.id
+                && rule.right.group
+                && rule.right.id
+                && rule.left.group !== rule.right.group
+                && doesRuleReferenceExist(rule.left.group, rule.left.id)
+                && doesRuleReferenceExist(rule.right.group, rule.right.id)
+            );
+        }
+
+        function getStructuredClueStats() {
+            return {
+                complete: AuthorStudioState.clues.filter(isStructuredRuleComplete).length,
+                total: AuthorStudioState.clues.length
+            };
+        }
+
+        function createEntity(type) {
+            return {
+                id: `${entityPrefixes[type]}${AuthorStudioState[type].length + 1}`,
+                name: '',
+                description: ''
+            };
+        }
+
+        function renumberEntities(type) {
+            AuthorStudioState[type].forEach((item, index) => {
+                item.id = `${entityPrefixes[type]}${index + 1}`;
+            });
+        }
+
+        function getSolutionOptionLabel(type, item) {
+            return `${item.id} · ${item.name || solutionFallbackNames[type]}`;
+        }
+
+        function createEmptyRule() {
+            return {
+                kind: '',
+                left: {
+                    group: '',
+                    id: ''
+                },
+                right: {
+                    group: '',
+                    id: ''
+                }
+            };
+        }
+
+        function ensureClueRule(clue) {
+            if (!clue.rule) clue.rule = createEmptyRule();
+            if (!clue.rule.left) clue.rule.left = { group: '', id: '' };
+            if (!clue.rule.right) clue.rule.right = { group: '', id: '' };
+            if (typeof clue.rule.kind !== 'string') clue.rule.kind = '';
+            if (typeof clue.rule.left.group !== 'string') clue.rule.left.group = '';
+            if (typeof clue.rule.left.id !== 'string') clue.rule.left.id = '';
+            if (typeof clue.rule.right.group !== 'string') clue.rule.right.group = '';
+            if (typeof clue.rule.right.id !== 'string') clue.rule.right.id = '';
+            return clue.rule;
+        }
+
+        function createClue() {
+            return {
+                id: `C${AuthorStudioState.clues.length + 1}`,
+                text: '',
+                type: 'general',
+                note: '',
+                rule: createEmptyRule()
+            };
+        }
+
+        function renumberClues() {
+            AuthorStudioState.clues.forEach((clue, index) => {
+                clue.id = `C${index + 1}`;
+            });
+        }
+
+        function cloneEntityList(list) {
+            return list.map(item => ({
+                id: item.id,
+                name: item.name,
+                description: item.description
+            }));
+        }
+
+        function cloneClueList(list) {
+            return list.map(clue => {
+                const rule = ensureClueRule(clue);
+
+                return {
+                    id: clue.id,
+                    text: clue.text,
+                    type: clue.type,
+                    note: clue.note,
+                    rule: {
+                        kind: rule.kind,
+                        left: {
+                            group: rule.left.group,
+                            id: rule.left.id
+                        },
+                        right: {
+                            group: rule.right.group,
+                            id: rule.right.id
+                        }
+                    }
+                };
+            });
+        }
+
+        function buildDraftCaseJson() {
+            return {
+                id: AuthorStudioState.caseId,
+                title: AuthorStudioState.title,
+                author: AuthorStudioState.author,
+                difficulty: AuthorStudioState.difficulty,
+                estimatedTime: AuthorStudioState.estimatedTime,
+                suspects: cloneEntityList(AuthorStudioState.suspects),
+                weapons: cloneEntityList(AuthorStudioState.weapons),
+                locations: cloneEntityList(AuthorStudioState.locations),
+                solution: {
+                    suspect: AuthorStudioState.solution.suspect,
+                    weapon: AuthorStudioState.solution.weapon,
+                    location: AuthorStudioState.solution.location
+                },
+                clues: cloneClueList(AuthorStudioState.clues),
+                meta: {
+                    source: 'author-studio',
+                    format: 'draft-v1'
+                }
+            };
+        }
+
+        function validateDraftCase() {
+            const result = {
+                errors: [],
+                warnings: [],
+                passes: []
+            };
+            const bucketMap = {
+                error: 'errors',
+                warning: 'warnings',
+                pass: 'passes'
+            };
+            const addResult = (level, id, message, target) => {
+                result[bucketMap[level]].push({ id, level, message, target });
+            };
+            const caseId = AuthorStudioState.caseId.trim();
+
+            if (!AuthorStudioState.title) addResult('error', 'missing-title', '案件标题不能为空', 'basic');
+            if (!caseId) addResult('error', 'missing-case-id', '案件编号不能为空', 'basic');
+            if (!AuthorStudioState.author) addResult('error', 'missing-author', '作者不能为空', 'basic');
+            if (!AuthorStudioState.difficulty) addResult('error', 'missing-difficulty', '请选择案件难度', 'basic');
+            if (!AuthorStudioState.estimatedTime) addResult('error', 'missing-estimated-time', '预计时长不能为空', 'basic');
+
+            if (caseId && /\s/.test(caseId)) {
+                addResult('warning', 'case-id-space', '案件编号不建议包含空格', 'basic');
+            }
+
+            if (caseId && !/^[a-z0-9-]+$/.test(caseId)) {
+                addResult('warning', 'case-id-format', '案件编号建议使用小写英文、数字和连字符，例如 case-draft-001', 'basic');
+            }
+
+            if (isBasicInfoComplete()) {
+                addResult('pass', 'basic-complete', '基础信息已填写完整', 'basic');
+            }
+
+            validateObjectGroup(addResult, 'suspects', '至少需要 1 名嫌疑人', '存在未命名嫌疑人', '嫌疑人数量偏少，正式案件建议至少 3 名');
+            validateObjectGroup(addResult, 'weapons', '至少需要 1 个凶器', '存在未命名凶器', '凶器数量偏少，正式案件建议至少 3 个');
+            validateObjectGroup(addResult, 'locations', '至少需要 1 个地点', '存在未命名地点', '地点数量偏少，正式案件建议至少 3 个');
+
+            const objectErrors = result.errors.filter(item => item.target === 'objects');
+            if (objectErrors.length === 0 && areObjectsComplete()) {
+                addResult('pass', 'objects-complete', '三类对象已填写完整', 'objects');
+            }
+
+            validateSolution(result, addResult);
+            validateClues(result, addResult);
+
+            return result;
+        }
+
+        function validateObjectGroup(addResult, type, missingMessage, unnamedMessage, countWarning) {
+            if (AuthorStudioState[type].length === 0) {
+                addResult('error', `missing-${type}`, missingMessage, 'objects');
+                return;
+            }
+
+            if (AuthorStudioState[type].some(item => !item.name)) {
+                addResult('error', `unnamed-${type}`, unnamedMessage, 'objects');
+            }
+
+            if (AuthorStudioState[type].length < 3) {
+                addResult('warning', `few-${type}`, countWarning, 'objects');
+            }
+        }
+
+        function validateSolution(result, addResult) {
+            const solutionRules = [
+                {
+                    key: 'suspect',
+                    type: 'suspects',
+                    missingId: 'missing-solution-suspect',
+                    missingMessage: '请选择真凶',
+                    invalidId: 'invalid-solution-suspect',
+                    invalidMessage: '真凶引用不存在'
+                },
+                {
+                    key: 'weapon',
+                    type: 'weapons',
+                    missingId: 'missing-solution-weapon',
+                    missingMessage: '请选择答案凶器',
+                    invalidId: 'invalid-solution-weapon',
+                    invalidMessage: '答案凶器引用不存在'
+                },
+                {
+                    key: 'location',
+                    type: 'locations',
+                    missingId: 'missing-solution-location',
+                    missingMessage: '请选择答案地点',
+                    invalidId: 'invalid-solution-location',
+                    invalidMessage: '答案地点引用不存在'
+                }
+            ];
+
+            solutionRules.forEach(rule => {
+                const selectedId = AuthorStudioState.solution[rule.key];
+
+                if (!selectedId) {
+                    addResult('error', rule.missingId, rule.missingMessage, 'solution');
+                    return;
+                }
+
+                if (!AuthorStudioState[rule.type].some(item => item.id === selectedId)) {
+                    addResult('error', rule.invalidId, rule.invalidMessage, 'solution');
+                }
+            });
+
+            const solutionErrors = result.errors.filter(item => item.target === 'solution');
+            if (solutionErrors.length === 0) {
+                addResult('pass', 'solution-complete', '案件答案已设置完整', 'solution');
+            }
+        }
+
+        function validateClues(result, addResult) {
+            if (AuthorStudioState.clues.length === 0) {
+                addResult('error', 'missing-clues', '至少需要 1 条线索', 'clues');
+                return;
+            }
+
+            if (AuthorStudioState.clues.some(clue => !clue.text)) {
+                addResult('error', 'empty-clue-text', '存在空线索文本', 'clues');
+            }
+
+            if (AuthorStudioState.clues.length < 3) {
+                addResult('warning', 'few-clues', '线索数量偏少，正式案件建议至少 3 条', 'clues');
+            }
+
+            if (AuthorStudioState.clues.some(clue => !clue.note)) {
+                addResult('warning', 'empty-clue-note', '存在未填写作者备注的线索', 'clues');
+            }
+
+            AuthorStudioState.clues.forEach(clue => {
+                const rule = ensureClueRule(clue);
+                const hasRule = Boolean(rule.kind);
+
+                if (!hasRule) return;
+
+                if (!rule.left.group) {
+                    addResult('error', `${clue.id}-missing-rule-left-group`, `${clue.id} 结构化规则缺少左侧分类`, 'clues');
+                }
+
+                if (!rule.left.id) {
+                    addResult('error', `${clue.id}-missing-rule-left-id`, `${clue.id} 结构化规则缺少左侧对象`, 'clues');
+                }
+
+                if (!rule.right.group) {
+                    addResult('error', `${clue.id}-missing-rule-right-group`, `${clue.id} 结构化规则缺少右侧分类`, 'clues');
+                }
+
+                if (!rule.right.id) {
+                    addResult('error', `${clue.id}-missing-rule-right-id`, `${clue.id} 结构化规则缺少右侧对象`, 'clues');
+                }
+
+                if (rule.left.group && rule.right.group && rule.left.group === rule.right.group) {
+                    addResult('error', `${clue.id}-same-rule-group`, `${clue.id} 结构化规则不建议在同一分类内关联`, 'clues');
+                }
+
+                const hasInvalidLeftReference = rule.left.group
+                    && rule.left.id
+                    && !doesRuleReferenceExist(rule.left.group, rule.left.id);
+                const hasInvalidRightReference = rule.right.group
+                    && rule.right.id
+                    && !doesRuleReferenceExist(rule.right.group, rule.right.id);
+
+                if (hasInvalidLeftReference || hasInvalidRightReference) {
+                    addResult('error', `${clue.id}-invalid-rule-reference`, `${clue.id} 结构化规则引用不存在`, 'clues');
+                }
+            });
+
+            if (AuthorStudioState.clues.some(clue => !ensureClueRule(clue).kind)) {
+                addResult('warning', 'unstructured-clues', '存在未结构化的线索，后续无法参与自动校验', 'clues');
+            }
+
+            if (AuthorStudioState.clues.every(isStructuredRuleComplete)) {
+                addResult('pass', 'structured-clues-complete', '所有线索结构化规则已填写完整', 'clues');
+            }
+
+            const clueErrors = result.errors.filter(item => item.target === 'clues');
+            if (clueErrors.length === 0) {
+                addResult('pass', 'clues-complete', '线索内容已填写完整', 'clues');
+            }
+        }
+
+        function getDraftValidationState(validationResult) {
+            if (validationResult.errors.length > 0) {
+                return {
+                    level: 'error',
+                    preview: '未通过',
+                    conclusion: '当前草稿不可进入正式校验，请先修复错误。',
+                    exportHint: '当前草稿仍有错误，建议修复后再导出。'
+                };
+            }
+
+            if (validationResult.warnings.length > 0) {
+                return {
+                    level: 'warning',
+                    preview: '有警告',
+                    conclusion: '当前草稿可进入下一步，但建议处理警告。',
+                    exportHint: '当前草稿存在警告，可导出但建议复查。'
+                };
+            }
+
+            return {
+                level: 'pass',
+                preview: '已通过',
+                conclusion: '当前草稿基础校验通过。',
+                exportHint: '当前草稿基础校验通过，可以导出。'
+            };
+        }
+
+        function updateDraftValidation() {
+            const validationResult = validateDraftCase();
+            const validationState = getDraftValidationState(validationResult);
+
+            validationSummaryEls.errors.textContent = validationResult.errors.length;
+            validationSummaryEls.warnings.textContent = validationResult.warnings.length;
+            validationSummaryEls.passes.textContent = validationResult.passes.length;
+
+            validationConclusionEl.textContent = validationState.conclusion;
+            validationConclusionEl.className = `validation-conclusion ${validationState.level}`;
+
+            draftValidationStatusEl.textContent = validationState.preview;
+
+            jsonValidationHintEl.textContent = validationState.exportHint;
+            jsonValidationHintEl.className = `validation-hint ${validationState.level}`;
+
+            renderValidationGroups(validationResult);
+        }
+
+        function renderValidationGroups(validationResult) {
+            const allItems = [
+                ...validationResult.errors,
+                ...validationResult.warnings,
+                ...validationResult.passes
+            ];
+
+            validationGroupsEl.innerHTML = validationTargetOrder.map(target => {
+                const items = allItems.filter(item => item.target === target);
+                const listHtml = items.length
+                    ? items.map(renderValidationItem).join('')
+                    : '<div class="validation-item"><span class="validation-badge pass">通过</span><span class="validation-message">暂无需要处理的问题</span></div>';
+
+                return `
+                    <section class="validation-group" aria-label="${escapeAttr(validationTargetLabels[target])}">
+                        <h4 class="validation-group-title">${escapeHtml(validationTargetLabels[target])}</h4>
+                        <div class="validation-list">
+                            ${listHtml}
+                        </div>
+                    </section>
+                `;
+            }).join('');
+        }
+
+        function renderValidationItem(item) {
+            return `
+                <div class="validation-item">
+                    <span class="validation-badge ${escapeAttr(item.level)}">${escapeHtml(validationLevelLabels[item.level])}</span>
+                    <span class="validation-message">${escapeHtml(item.message)}</span>
+                </div>
+            `;
+        }
+
+        function renderEntityList(type) {
+            const listEl = document.getElementById(`${type}-list`);
+            const label = entityLabels[type];
+
+            listEl.innerHTML = AuthorStudioState[type].map((item, index) => `
+                <div class="object-card">
+                    <div class="object-card-header">
+                        <span class="object-id">${escapeHtml(item.id)}</span>
+                        <button class="delete-btn" type="button" data-remove="${type}" data-index="${index}" aria-label="删除${label} ${escapeAttr(item.id)}">
+                            <span data-lucide="trash" aria-hidden="true"></span>
+                            删除
+                        </button>
+                    </div>
+                    <div class="object-fields">
+                        <label>
+                            名称
+                            <input
+                                type="text"
+                                value="${escapeAttr(item.name)}"
+                                data-type="${type}"
+                                data-index="${index}"
+                                data-field="name"
+                                aria-label="${label} ${escapeAttr(item.id)} 名称"
+                                placeholder="请输入${label}名称"
+                            >
+                        </label>
+                        <label>
+                            简介
+                            <textarea
+                                data-type="${type}"
+                                data-index="${index}"
+                                data-field="description"
+                                aria-label="${label} ${escapeAttr(item.id)} 简介"
+                                placeholder="请输入${label}简介"
+                            >${escapeHtml(item.description)}</textarea>
+                        </label>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderAllEntityLists() {
+            renderEntityList('suspects');
+            renderEntityList('weapons');
+            renderEntityList('locations');
+            renderSolutionOptions();
+            hydrateStaticIcons();
+        }
+
+        function renderClueList() {
+            cluesListEl.innerHTML = AuthorStudioState.clues.map((clue, index) => {
+                const rule = ensureClueRule(clue);
+
+                return `
+                    <div class="object-card clue-card">
+                        <div class="object-card-header">
+                            <span class="object-id">${escapeHtml(clue.id)}</span>
+                            <button class="delete-btn" type="button" data-remove-clue="${index}" aria-label="删除线索 ${escapeAttr(clue.id)}">
+                                <span data-lucide="trash" aria-hidden="true"></span>
+                                删除
+                            </button>
+                        </div>
+                        <div class="clue-fields">
+                            <label>
+                                线索类型
+                                <select data-clue-index="${index}" data-clue-field="type" aria-label="线索 ${escapeAttr(clue.id)} 类型">
+                                    ${renderClueTypeOptions(clue.type)}
+                                </select>
+                            </label>
+                            <label>
+                                玩家可见线索
+                                <textarea
+                                    class="clue-text"
+                                    data-clue-index="${index}"
+                                    data-clue-field="text"
+                                    aria-label="线索 ${escapeAttr(clue.id)} 玩家可见文本"
+                                    placeholder="请输入玩家在游戏中看到的线索文本"
+                                >${escapeHtml(clue.text)}</textarea>
+                            </label>
+                        </div>
+                        <label>
+                            作者备注
+                            <textarea
+                                class="clue-note"
+                                data-clue-index="${index}"
+                                data-clue-field="note"
+                                aria-label="线索 ${escapeAttr(clue.id)} 作者备注"
+                                placeholder="请输入仅供作者维护使用的备注"
+                            >${escapeHtml(clue.note)}</textarea>
+                        </label>
+                        <div class="clue-rule-section" aria-label="线索 ${escapeAttr(clue.id)} 结构化规则">
+                            <div class="clue-rule-title">结构化规则</div>
+                            <div class="rule-grid">
+                                <label class="rule-kind-field">
+                                    规则类型
+                                    <select data-clue-rule-index="${index}" data-rule-field="kind" aria-label="线索 ${escapeAttr(clue.id)} 规则类型">
+                                        ${renderRuleKindOptions(rule.kind)}
+                                    </select>
+                                </label>
+                                <label>
+                                    左侧分类
+                                    <select data-clue-rule-index="${index}" data-rule-side="left" data-rule-field="group" aria-label="线索 ${escapeAttr(clue.id)} 左侧分类">
+                                        ${renderRuleGroupOptions(rule.left.group)}
+                                    </select>
+                                </label>
+                                <label>
+                                    左侧对象
+                                    <select data-clue-rule-index="${index}" data-rule-side="left" data-rule-field="id" aria-label="线索 ${escapeAttr(clue.id)} 左侧对象">
+                                        ${renderRuleObjectOptions(rule.left.group, rule.left.id)}
+                                    </select>
+                                </label>
+                                <label>
+                                    右侧分类
+                                    <select data-clue-rule-index="${index}" data-rule-side="right" data-rule-field="group" aria-label="线索 ${escapeAttr(clue.id)} 右侧分类">
+                                        ${renderRuleGroupOptions(rule.right.group)}
+                                    </select>
+                                </label>
+                                <label>
+                                    右侧对象
+                                    <select data-clue-rule-index="${index}" data-rule-side="right" data-rule-field="id" aria-label="线索 ${escapeAttr(clue.id)} 右侧对象">
+                                        ${renderRuleObjectOptions(rule.right.group, rule.right.id)}
+                                    </select>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            hydrateStaticIcons();
+        }
+
+        function renderClueTypeOptions(selectedType) {
+            return Object.entries(clueTypeLabels).map(([value, label]) => (
+                `<option value="${escapeAttr(value)}"${value === selectedType ? ' selected' : ''}>${escapeHtml(label)}</option>`
+            )).join('');
+        }
+
+        function renderRuleKindOptions(selectedKind) {
+            return Object.entries(ruleKindLabels).map(([value, label]) => (
+                `<option value="${escapeAttr(value)}"${value === selectedKind ? ' selected' : ''}>${escapeHtml(label)}</option>`
+            )).join('');
+        }
+
+        function renderRuleGroupOptions(selectedGroup) {
+            const options = Object.entries(entityLabels).map(([value, label]) => (
+                `<option value="${escapeAttr(value)}"${value === selectedGroup ? ' selected' : ''}>${escapeHtml(label)}</option>`
+            )).join('');
+
+            return `<option value="">请选择分类</option>${options}`;
+        }
+
+        function renderRuleObjectOptions(group, selectedId) {
+            if (!group || !AuthorStudioState[group]) {
+                return '<option value="">请先选择分类</option>';
+            }
+
+            const options = AuthorStudioState[group].map(item => (
+                `<option value="${escapeAttr(item.id)}"${item.id === selectedId ? ' selected' : ''}>${escapeHtml(getSolutionOptionLabel(group, item))}</option>`
+            )).join('');
+
+            return `<option value="">请选择对象</option>${options}`;
+        }
+
+        function renderSolutionOptions() {
+            renderSolutionSelect('suspects', solutionFieldMap.suspect, '请选择真凶');
+            renderSolutionSelect('weapons', solutionFieldMap.weapon, '请选择凶器');
+            renderSolutionSelect('locations', solutionFieldMap.location, '请选择地点');
+        }
+
+        function renderSolutionSelect(type, selectEl, placeholder) {
+            const solutionKey = solutionKeys[type];
+            const currentValue = AuthorStudioState.solution[solutionKey];
+            const options = AuthorStudioState[type].map(item => (
+                `<option value="${escapeAttr(item.id)}">${escapeHtml(getSolutionOptionLabel(type, item))}</option>`
+            )).join('');
+
+            selectEl.innerHTML = `<option value="">${escapeHtml(placeholder)}</option>${options}`;
+            selectEl.value = currentValue;
+
+            if (selectEl.value !== currentValue) {
+                AuthorStudioState.solution[solutionKey] = '';
+            }
+        }
+
+        function updatePreview() {
+            document.getElementById('preview-case-title').textContent = AuthorStudioState.title || '未命名案件';
+            document.getElementById('preview-case-id').textContent = AuthorStudioState.caseId || '未设置编号';
+            document.getElementById('suspects-count').textContent = AuthorStudioState.suspects.length;
+            document.getElementById('weapons-count').textContent = AuthorStudioState.weapons.length;
+            document.getElementById('locations-count').textContent = AuthorStudioState.locations.length;
+            document.getElementById('clues-count').textContent = AuthorStudioState.clues.length;
+            const structuredClueStats = getStructuredClueStats();
+            document.getElementById('structured-clues-count').textContent = `${structuredClueStats.complete} / ${structuredClueStats.total}`;
+            document.getElementById('case-status').textContent = getDraftStatus();
+            document.getElementById('solution-status').textContent = isSolutionComplete() ? '已完成' : '未完成';
+            updateDraftJsonPreview();
+            updateDraftValidation();
+        }
+
+        function updateDraftJsonPreview() {
+            const draftCase = buildDraftCaseJson();
+            draftJsonOutputEl.value = JSON.stringify(draftCase, null, 2);
+            jsonExportStatusEl.textContent = '';
+            updateCompletionStatus('basic', isBasicInfoComplete());
+            updateCompletionStatus('objects', areObjectsComplete());
+            updateCompletionStatus('solution', isSolutionComplete());
+            updateCompletionStatus('clues', areCluesComplete());
+        }
+
+        function updateCompletionStatus(key, isComplete) {
+            const el = completionStatusEls[key];
+            el.textContent = isComplete ? '已完成' : '未完成';
+            el.classList.toggle('done', isComplete);
+        }
+
+        function getDraftJsonText() {
+            return JSON.stringify(buildDraftCaseJson(), null, 2);
+        }
+
+        function getDraftFileName() {
+            const caseId = AuthorStudioState.caseId.trim();
+            if (!caseId) return 'clevergrid-author-draft.json';
+
+            return `${caseId.replace(/[\\/:*?"<>|]+/g, '-')}.json`;
+        }
+
+        function escapeAttr(value) {
+            return String(value).replace(/[&<>"']/g, char => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            })[char]);
+        }
+
+        function escapeHtml(value) {
+            return String(value).replace(/[&<>"']/g, char => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            })[char]);
+        }
+
+        Object.entries(fieldMap).forEach(([key, el]) => {
+            el.addEventListener('input', () => {
+                AuthorStudioState[key] = el.value.trim();
+                updatePreview();
+            });
+        });
+
+        Object.entries(solutionFieldMap).forEach(([key, el]) => {
+            el.addEventListener('change', () => {
+                AuthorStudioState.solution[key] = el.value;
+                updatePreview();
+            });
+        });
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                activateTab(button.getAttribute('data-tab-target'));
+            });
+        });
+
+        function activateTab(panelId) {
+            tabButtons.forEach(button => {
+                const isActive = button.getAttribute('data-tab-target') === panelId;
+                button.classList.toggle('active', isActive);
+                button.setAttribute('aria-selected', String(isActive));
+            });
+
+            tabPanels.forEach(panel => {
+                panel.hidden = panel.id !== panelId;
+            });
+        }
+
+        document.getElementById('copy-json-button').addEventListener('click', async () => {
+            if (!navigator.clipboard || !navigator.clipboard.writeText) {
+                jsonExportStatusEl.textContent = '当前浏览器不支持自动复制，请手动复制';
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(getDraftJsonText());
+                jsonExportStatusEl.textContent = '已复制';
+            } catch (error) {
+                jsonExportStatusEl.textContent = '当前浏览器不支持自动复制，请手动复制';
+            }
+        });
+
+        document.getElementById('download-json-button').addEventListener('click', () => {
+            const blob = new Blob([getDraftJsonText()], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+
+            link.href = url;
+            link.download = getDraftFileName();
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+            jsonExportStatusEl.textContent = '已生成下载文件';
+        });
+
+        addClueButtonEl.addEventListener('click', () => {
+            AuthorStudioState.clues.push(createClue());
+            renderClueList();
+            updatePreview();
+
+            const newTextarea = cluesListEl.querySelector(`textarea[data-clue-index="${AuthorStudioState.clues.length - 1}"][data-clue-field="text"]`);
+            if (newTextarea) newTextarea.focus();
+        });
+
+        document.querySelectorAll('[data-add]').forEach(button => {
+            button.addEventListener('click', () => {
+                const type = button.getAttribute('data-add');
+                AuthorStudioState[type].push(createEntity(type));
+                renderAllEntityLists();
+                renderClueList();
+                updatePreview();
+
+                const listEl = document.getElementById(`${type}-list`);
+                const newInput = listEl.querySelector(`input[data-index="${AuthorStudioState[type].length - 1}"][data-field="name"]`);
+                if (newInput) newInput.focus();
+            });
+        });
+
+        document.addEventListener('input', event => {
+            const input = event.target.closest('[data-type][data-field]');
+            if (!input) return;
+
+            const type = input.getAttribute('data-type');
+            const index = Number(input.getAttribute('data-index'));
+            const field = input.getAttribute('data-field');
+            AuthorStudioState[type][index][field] = input.value.trim();
+            if (field === 'name') {
+                renderSolutionOptions();
+                renderClueList();
+            }
+            updatePreview();
+        });
+
+        document.addEventListener('input', event => {
+            const input = event.target.closest('[data-clue-index][data-clue-field]');
+            if (!input || input.tagName === 'SELECT') return;
+
+            const index = Number(input.getAttribute('data-clue-index'));
+            const field = input.getAttribute('data-clue-field');
+            AuthorStudioState.clues[index][field] = input.value.trim();
+            updatePreview();
+        });
+
+        document.addEventListener('change', event => {
+            const select = event.target.closest('select[data-clue-index][data-clue-field]');
+            if (!select) return;
+
+            const index = Number(select.getAttribute('data-clue-index'));
+            const field = select.getAttribute('data-clue-field');
+            AuthorStudioState.clues[index][field] = select.value;
+            updatePreview();
+        });
+
+        document.addEventListener('change', event => {
+            const select = event.target.closest('select[data-clue-rule-index][data-rule-field]');
+            if (!select) return;
+
+            const index = Number(select.getAttribute('data-clue-rule-index'));
+            const clue = AuthorStudioState.clues[index];
+            if (!clue) return;
+
+            const rule = ensureClueRule(clue);
+            const field = select.getAttribute('data-rule-field');
+            const side = select.getAttribute('data-rule-side');
+
+            if (field === 'kind') {
+                rule.kind = select.value;
+                updatePreview();
+                return;
+            }
+
+            if (!side || !rule[side]) return;
+
+            if (field === 'group') {
+                rule[side].group = select.value;
+                rule[side].id = '';
+                renderClueList();
+                updatePreview();
+                return;
+            }
+
+            if (field === 'id') {
+                rule[side].id = select.value;
+                updatePreview();
+            }
+        });
+
+        document.addEventListener('click', event => {
+            const removeButton = event.target.closest('[data-remove]');
+
+            if (removeButton) {
+                const type = removeButton.getAttribute('data-remove');
+                const index = Number(removeButton.getAttribute('data-index'));
+                const removedId = AuthorStudioState[type][index] && AuthorStudioState[type][index].id;
+                AuthorStudioState[type].splice(index, 1);
+                clearSolutionIfDeleted(type, removedId);
+                clearRuleReferencesForDeleted(type, removedId);
+                renumberEntities(type);
+                clearInvalidSolutionReferences();
+                clearInvalidRuleReferences();
+                renderAllEntityLists();
+                renderClueList();
+                updatePreview();
+            }
+
+            const removeClueButton = event.target.closest('[data-remove-clue]');
+
+            if (removeClueButton) {
+                const index = Number(removeClueButton.getAttribute('data-remove-clue'));
+                AuthorStudioState.clues.splice(index, 1);
+                renumberClues();
+                renderClueList();
+                updatePreview();
+            }
+        });
+
+        function clearSolutionIfDeleted(type, removedId) {
+            const solutionKey = solutionKeys[type];
+            if (AuthorStudioState.solution[solutionKey] === removedId) {
+                AuthorStudioState.solution[solutionKey] = '';
+            }
+        }
+
+        function clearInvalidSolutionReferences() {
+            Object.entries(solutionKeys).forEach(([type, solutionKey]) => {
+                const selectedId = AuthorStudioState.solution[solutionKey];
+                const stillExists = AuthorStudioState[type].some(item => item.id === selectedId);
+
+                if (selectedId && !stillExists) {
+                    AuthorStudioState.solution[solutionKey] = '';
+                }
+            });
+        }
+
+        function clearRuleReferencesForDeleted(type, removedId) {
+            if (!removedId) return;
+
+            AuthorStudioState.clues.forEach(clue => {
+                const rule = ensureClueRule(clue);
+
+                ['left', 'right'].forEach(side => {
+                    if (rule[side].group === type && rule[side].id === removedId) {
+                        rule[side].id = '';
+                    }
+                });
+            });
+        }
+
+        function clearInvalidRuleReferences() {
+            AuthorStudioState.clues.forEach(clue => {
+                const rule = ensureClueRule(clue);
+
+                ['left', 'right'].forEach(side => {
+                    const reference = rule[side];
+
+                    if (reference.group && !AuthorStudioState[reference.group]) {
+                        reference.group = '';
+                        reference.id = '';
+                        return;
+                    }
+
+                    if (reference.group && reference.id && !doesRuleReferenceExist(reference.group, reference.id)) {
+                        reference.id = '';
+                    }
+                });
+            });
+        }
+
+        renderAllEntityLists();
+        renderClueList();
+        updatePreview();
+    </script>
+</body>
+</html>
