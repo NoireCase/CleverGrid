@@ -30,6 +30,87 @@ function formatDifficulty(difficulty) {
     return difficulty || '';
 }
 
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    })[char]);
+}
+
+function getCaseClues(data) {
+    return Array.isArray(data && data.clues) ? data.clues : [];
+}
+
+function getClueText(clue) {
+    if (clue && typeof clue === 'object') return clue.text || clue.content || '';
+    return clue || '';
+}
+
+function splitCardMeta(value) {
+    return String(value || '')
+        .split(/[·,，、/|]+/)
+        .map(item => item.trim())
+        .filter(Boolean);
+}
+
+function getDossierIcon(obj, type, size = 'card') {
+    const name = escapeHtml(obj && obj.name ? obj.name : '');
+    const icons = window.CleverGridIcons;
+    const iconName = icons ? icons.resolveObjectIcon(obj, type) : 'circleHelp';
+    const iconSvg = icons ? icons.render(iconName, { label: name }) : '';
+
+    return `
+        <span class="asset-icon asset-icon-${type} asset-icon-${size}" title="${name}">
+            ${iconSvg}
+        </span>
+    `;
+}
+
+function getTypeIcon(type) {
+    const placeholders = {
+        suspect: { id: 'S', name: '凶手' },
+        weapon: { id: 'W', name: '凶器' },
+        location: { id: 'L', name: '地点' }
+    };
+    return getDossierIcon(placeholders[type] || placeholders.suspect, type, 'slot');
+}
+
+function hydrateStaticIcons() {
+    if (!window.CleverGridIcons) return;
+
+    document.querySelectorAll('[data-lucide]').forEach(el => {
+        const key = el.getAttribute('data-lucide');
+        const iconName = window.CleverGridIcons.toolIconMap[key] || key;
+        const label = el.getAttribute('aria-label') || el.getAttribute('title') || '';
+        el.innerHTML = window.CleverGridIcons.render(iconName, { label });
+    });
+}
+
+function formatDurationValue(value) {
+    if (value === undefined || value === null || value === '') return '';
+    if (typeof value === 'number' && Number.isFinite(value)) return `${value}分钟`;
+    return String(value);
+}
+
+function estimateDurationByClueCount(clueCount) {
+    if (clueCount <= 5) return '5-8分钟';
+    if (clueCount <= 10) return '10-15分钟';
+    if (clueCount <= 15) return '15-20分钟';
+    return '20-30分钟';
+}
+
+function getCaseDurationText(data) {
+    const durationFields = ['estimatedTime', 'estimatedDuration', 'estimatedMinutes', 'timeMinutes', 'duration', 'playTime'];
+    const explicitValue = durationFields
+        .map(field => data[field])
+        .find(value => value !== undefined && value !== null && value !== '');
+    const explicitDuration = formatDurationValue(explicitValue);
+    return explicitDuration || estimateDurationByClueCount(getCaseClues(data).length);
+}
+
 // GM Debug System
 const debugSystem = {
     buffer: [],
@@ -120,7 +201,7 @@ const debugSystem = {
     instantWin() {
         const data = GAME_DATA[game.idx];
         if (!data.fullTruth) {
-            alert("⚠️ 错误：当前案件数据中缺少 'fullTruth' 配置。");
+            alert("错误：当前案件数据中缺少 'fullTruth' 配置。");
             return;
         }
 
@@ -174,7 +255,7 @@ const game = {
     historyStack: [],
     redoStack: [],
     snapshot: null,
-    cellSize: 46,
+    cellSize: 61,
     isDragging: false,
     truthState: { suspect: null, weapon: null, location: null },
 
@@ -308,8 +389,15 @@ const game = {
         this.saveGlobal();
 
         const data = GAME_DATA[i];
-        const difficultyText = formatDifficulty(data.difficulty);
-        document.getElementById('case-display-info').innerText = `CASE ${String(i+1).padStart(2, '0')}: ${data.title}${difficultyText ? ` · ${difficultyText}` : ''}`;
+        const clueCount = getCaseClues(data).length;
+        const difficultyText = formatDifficulty(data.difficulty) || '未标注';
+        const durationText = getCaseDurationText(data);
+        document.getElementById('case-display-info').innerHTML = `
+            <span class="case-heading">CASE ${String(i+1).padStart(2, '0')}: ${escapeHtml(data.title || '未命名案件')}</span>
+            <span class="case-meta">难度：${escapeHtml(difficultyText)}</span>
+            <span class="case-meta">线索：${clueCount}</span>
+            <span class="case-meta">预计：${escapeHtml(durationText)}</span>
+        `;
         document.getElementById('btn-prev').disabled = (i === 0);
 
         const isCompleted = this.isCaseSolved(i);
@@ -334,35 +422,26 @@ const game = {
     genCard(obj, type) {
         const isEliminated = this.eliminatedCards.includes(obj.id);
 
-        // 构建标签 HTML
-        let metaHtml = '';
-
-        // 1. 嫌疑人特征
-        if (obj.traits) {
-        // 只使用 .meta-tag，去掉 tag-trait 类名，从根源上消除差异
-           metaHtml += `<span class="meta-tag">${obj.traits}</span>`;
-        }
-
-        // 2. 物品/地点分类
-        if (obj.tag) {
-        // 同样只使用 .meta-tag
-           metaHtml += `<span class="meta-tag">${obj.tag}</span>`;
-        }
+        const metaItems = [
+            ...splitCardMeta(obj.traits),
+            ...splitCardMeta(obj.tag)
+        ];
+        const metaHtml = metaItems.map(item => `<span class="meta-tag">${escapeHtml(item)}</span>`).join('');
 
         return `
-        <div class="info-card ${isEliminated ? 'eliminated' : ''}" id="card-${obj.id}"
+        <div class="info-card ${isEliminated ? 'eliminated' : ''}" id="card-${escapeHtml(obj.id)}"
             draggable="true"
-            ondragstart="game.onDragStart(event, '${obj.id}', '${type}', '${obj.icon}', '${obj.name}')"
+            ondragstart="game.onDragStart(event, '${obj.id}', '${type}', '', '${obj.name}')"
             onclick="game.toggleCard('${obj.id}')"
             oncontextmenu="event.preventDefault(); game.toggleCard('${obj.id}')">
 
             <div class="card-avatar">
-                ${obj.icon}
+                ${getDossierIcon(obj, type)}
             </div>
 
             <div class="card-content">
-                <div class="card-title">${obj.name}</div>
-                <div class="card-desc">${obj.desc || ''}</div>
+                <div class="card-title">${escapeHtml(obj.name)}</div>
+                <div class="card-desc">${escapeHtml(obj.desc || '')}</div>
                 <div class="card-meta">
                     ${metaHtml}
                 </div>
@@ -418,7 +497,7 @@ const game = {
 
                 if(obj) {
                     slot.innerHTML = `
-                        <div class="truth-slot-icon">${obj.icon}</div>
+                        <div class="truth-slot-icon">${getDossierIcon(obj, type, 'slot')}</div>
                         <div class="truth-slot-text">${obj.name}</div>
                         <div class="slot-clear-btn" onclick="event.stopPropagation(); game.clearSlot('${type}')">✕</div>
                     `;
@@ -427,8 +506,8 @@ const game = {
                 }
             } else {
                 // Empty state
-                const labels = { suspect: '👤 拖入凶手', weapon: '🔪 拖入凶器', location: '📍 拖入地点' };
-                slot.innerHTML = `<span>${labels[type]}</span>`;
+                const labels = { suspect: '拖入凶手', weapon: '拖入凶器', location: '拖入地点' };
+                slot.innerHTML = `<span class="truth-placeholder">${getTypeIcon(type)}<span>${labels[type]}</span></span>`;
                 slot.classList.remove('filled');
             }
         });
@@ -454,7 +533,7 @@ const game = {
             btn.classList.add('shake');
             btn.style.background = 'var(--ink-cross)';
             const originalText = btn.innerHTML;
-            btn.innerHTML = '<span style="color:#fff">❌ 推理错误</span>';
+            btn.innerHTML = '<span style="color:#fff">推理错误</span>';
             setTimeout(() => {
                 btn.classList.remove('shake');
                 btn.style.background = '';
@@ -465,27 +544,30 @@ const game = {
 
     renderClues() {
         const data = GAME_DATA[this.idx];
-        document.getElementById('clue-list').innerHTML = data.clues.map((c, idx) => `
+        document.getElementById('clue-list').innerHTML = getCaseClues(data).map((clue, idx) => `
             <div class="clue-item ${this.clueState.includes(idx) ? 'done' : ''}"
-                 onclick="game.toggleClue(${idx})">${c}</div>
+                 onclick="game.toggleClue(${idx})">
+                <div class="clue-number">线索${String(idx + 1).padStart(2, '0')}</div>
+                <div class="clue-text">${escapeHtml(getClueText(clue))}</div>
+            </div>
         `).join('');
     },
 
     renderGrid(data) {
         const target = document.getElementById('grid-target');
         let h = `<table class="grid-table" id="matrix-main"><thead><tr><th style="background:var(--bg-subtle); border:none;"></th>`;
-        data.suspects.forEach(s => h += `<th>${s.icon}</th>`);
-        data.locations.forEach(l => h += `<th>${l.icon}</th>`);
+        data.suspects.forEach(s => h += `<th>${getDossierIcon(s, 'suspect', 'grid')}</th>`);
+        data.locations.forEach(l => h += `<th>${getDossierIcon(l, 'location', 'grid')}</th>`);
         h += `</tr></thead><tbody>`;
 
         data.weapons.forEach(w => {
-            h += `<tr><th>${w.icon}</th>`;
+            h += `<tr><th>${getDossierIcon(w, 'weapon', 'grid')}</th>`;
             data.suspects.forEach(s => h += this.genCell(s.id, w.id));
             data.locations.forEach(l => h += this.genCell(w.id, l.id));
             h += `</tr>`;
         });
         data.locations.forEach(lRow => {
-            h += `<tr><th>${lRow.icon}</th>`;
+            h += `<tr><th>${getDossierIcon(lRow, 'location', 'grid')}</th>`;
             data.suspects.forEach(s => h += this.genCell(s.id, lRow.id));
             h += `<td colspan="${data.locations.length}" class="spacer-cell"></td></tr>`;
         });
@@ -722,7 +804,7 @@ const game = {
         if (!isLastLevel) {
             btnsHtml += `<button class="btn-modal btn-primary" onclick="game.closeModal(); game.changeLevel(1)">下一案 ▶</button>`;
         } else {
-            btnsHtml += `<button class="btn-modal btn-primary" onclick="game.closeModal()">🎉 全部通关！</button>`;
+            btnsHtml += `<button class="btn-modal btn-primary" onclick="game.closeModal()">全部通关！</button>`;
         }
 
         document.getElementById('modal-btns').innerHTML = btnsHtml;
@@ -789,4 +871,7 @@ const game = {
 
 window.debugSystem = debugSystem;
 window.game = game;
-window.startCleverGridApp = () => game.init();
+window.startCleverGridApp = () => {
+    hydrateStaticIcons();
+    game.init();
+};
