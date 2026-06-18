@@ -3,24 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Case Uploader</title>
+    <title>案件上传器</title>
     <style>
         :root {
-            --bg: #f5f7fa;
-            --panel: #ffffff;
-            --text: #24313d;
-            --muted: #667085;
-            --border: #d6dde6;
-            --accent: #2563eb;
-            --accent-dark: #1d4ed8;
-            --ok: #1f7a4d;
-            --bad: #b3261e;
-            --warn: #a15c07;
-            --ok-bg: #edf8f2;
-            --bad-bg: #fff1f0;
-            --warn-bg: #fff7e8;
-            --code-bg: #111827;
-            --code-text: #e5e7eb;
+            --bg-app: #D8C3A0;
+            --bg-panel: #F6EBD6;
+            --bg-paper: #FFF8E8;
+            --bg-subtle: #EAD9B9;
+            --bg-active: #F4E1B3;
+            --bg-leather: #3B2418;
+            --text-primary: #2B2119;
+            --text-secondary: #7C6752;
+            --text-disabled: #B8A58B;
+            --accent-focus: #B3873A;
+            --accent-brass: #C39A4A;
+            --ink-check: #2F6844;
+            --ink-cross: #8E2F24;
+            --warn: #A15C07;
+            --border-main: #C7AA7A;
+            --border-paper: #D8BD8C;
+            --shadow-card: 0 2px 5px rgba(58, 36, 24, 0.10), 0 1px 1px rgba(58, 36, 24, 0.12);
+            --font-sans: "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+            --font-mono: "Roboto Mono", "Courier New", monospace;
         }
 
         * {
@@ -28,65 +32,142 @@
         }
 
         body {
+            min-height: 100vh;
             margin: 0;
-            background: var(--bg);
-            color: var(--text);
-            font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+            background:
+                radial-gradient(circle at 16% 12%, rgba(255, 248, 232, 0.32), transparent 30%),
+                linear-gradient(135deg, #C19A67 0%, var(--bg-app) 42%, #B78D57 100%);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
             line-height: 1.6;
         }
 
-        .page {
-            max-width: 1180px;
-            margin: 0 auto;
-            padding: 28px 20px 48px;
+        a {
+            color: inherit;
+            text-decoration: none;
         }
 
         .topbar {
+            min-height: 64px;
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            gap: 16px;
-            margin-bottom: 20px;
+            align-items: center;
+            gap: 20px;
+            padding: 14px 24px;
+            background:
+                linear-gradient(180deg, rgba(255, 248, 232, 0.92) 0%, rgba(238, 219, 185, 0.95) 100%);
+            border-bottom: 2px solid #8C653A;
+            box-shadow: 0 2px 10px rgba(59, 36, 24, 0.18);
         }
 
-        h1 {
-            margin: 0;
-            font-size: 28px;
-            line-height: 1.25;
+        .brand {
+            min-width: 0;
         }
 
-        h2 {
-            margin: 0 0 12px;
-            font-size: 18px;
-        }
-
+        h1,
+        h2,
+        h3,
         p {
             margin: 0;
         }
 
-        .subtitle {
-            margin-top: 6px;
-            color: var(--muted);
-            font-size: 14px;
+        h1 {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            line-height: 1.25;
+            letter-spacing: 0;
         }
 
-        .nav-links {
+        .subtitle {
+            margin-top: 4px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .top-actions {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
             justify-content: flex-end;
+            gap: 10px;
         }
 
-        .nav-links a,
-        .link-button {
-            color: var(--accent);
-            font-weight: 700;
-            text-decoration: none;
+        .nav-btn,
+        button,
+        .file-label {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 38px;
+            border: 1px solid rgba(92, 61, 38, 0.45);
+            border-radius: 4px;
+            background: rgba(255, 248, 232, 0.42);
+            color: var(--text-primary);
+            font: inherit;
+            font-size: 0.86rem;
+            font-weight: 800;
+            cursor: pointer;
         }
 
-        .nav-links a:hover,
-        .link-button:hover {
-            text-decoration: underline;
+        .nav-btn,
+        button,
+        .file-label {
+            padding: 8px 14px;
+        }
+
+        .nav-btn:hover,
+        button:hover:not(:disabled),
+        .file-label:hover {
+            background: var(--bg-paper);
+            border-color: var(--accent-focus);
+        }
+
+        button.primary {
+            background: var(--bg-leather);
+            color: #FFF8E8;
+            border-color: var(--accent-brass);
+            box-shadow: inset 0 0 0 1px rgba(195, 154, 74, 0.18);
+        }
+
+        button.primary:hover:not(:disabled) {
+            background: #2F1D14;
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.48;
+        }
+
+        .nav-btn .lucide-icon,
+        button .lucide-icon,
+        .file-label .lucide-icon {
+            width: 18px;
+            height: 18px;
+            display: block;
+            flex-shrink: 0;
+        }
+
+        .toolbar-strip {
+            min-height: 48px;
+            background: linear-gradient(180deg, rgba(59, 36, 24, 0.96) 0%, rgba(47, 29, 20, 0.96) 100%);
+            border-bottom: 1px solid rgba(123, 84, 46, 0.72);
+            color: #EBD9B7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 8px 20px;
+            font-size: 0.82rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+
+        .page {
+            width: min(1180px, calc(100% - 40px));
+            margin: 0 auto;
+            padding: 28px 0 48px;
         }
 
         .layout {
@@ -97,69 +178,69 @@
         }
 
         .panel {
-            background: var(--panel);
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-paper);
             border-radius: 8px;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.38) 0%, rgba(255, 248, 232, 0.14) 100%),
+                var(--bg-panel);
+            box-shadow: var(--shadow-card);
             padding: 18px;
-            box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06);
         }
 
-        .stack {
-            display: grid;
-            gap: 16px;
+        .panel + .panel {
+            margin-top: 16px;
+        }
+
+        .panel-title {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            margin-bottom: 6px;
+            color: #3A2418;
+            font-size: 1.05rem;
+        }
+
+        .panel-title .lucide-icon {
+            width: 21px;
+            height: 21px;
+            color: #5A3A24;
+        }
+
+        .panel-note,
+        .source-note,
+        .copy-status {
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            font-weight: 600;
         }
 
         textarea {
             width: 100%;
-            min-height: 470px;
+            min-height: 430px;
             resize: vertical;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 12px;
-            color: var(--text);
-            background: #fff;
-            font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            margin-top: 16px;
+            border: 1px solid var(--border-paper);
+            border-radius: 8px;
+            padding: 14px;
+            background: rgba(255, 248, 232, 0.82);
+            color: var(--text-primary);
+            font: 14px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.62);
         }
 
         textarea:focus {
-            outline: 2px solid rgba(37, 99, 235, 0.18);
-            border-color: var(--accent);
+            outline: 2px solid rgba(179, 135, 58, 0.22);
+            border-color: var(--accent-focus);
+            background: var(--bg-paper);
         }
 
-        .actions {
+        .actions,
+        .action-buttons {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
             align-items: center;
             margin-top: 12px;
-        }
-
-        button,
-        .file-label {
-            min-height: 38px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 8px 12px;
-            background: #fff;
-            color: var(--text);
-            font: inherit;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        button.primary {
-            border-color: var(--accent);
-            background: var(--accent);
-            color: #fff;
-        }
-
-        button.primary:hover {
-            background: var(--accent-dark);
-        }
-
-        button:disabled {
-            cursor: not-allowed;
-            opacity: 0.55;
         }
 
         input[type="file"] {
@@ -170,56 +251,45 @@
             clip: rect(0, 0, 0, 0);
         }
 
-        .source-note {
-            color: var(--muted);
-            font-size: 13px;
-        }
-
-        .info {
-            border-left: 4px solid var(--accent);
-            background: #eef4ff;
-            padding: 12px 14px;
-            color: #244166;
-        }
-
         .result-list {
             display: grid;
             gap: 10px;
+            margin-top: 14px;
         }
 
         .result-block {
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 12px;
-            background: #fff;
+            border: 1px solid rgba(199, 170, 122, 0.72);
+            border-radius: 8px;
+            padding: 12px 14px;
+            background: rgba(255, 248, 232, 0.58);
         }
 
         .result-block.ok {
-            border-color: #b7e2c8;
-            background: var(--ok-bg);
+            border-color: rgba(47, 104, 68, 0.44);
+            background: rgba(237, 248, 242, 0.72);
         }
 
         .result-block.bad {
-            border-color: #f2b8b5;
-            background: var(--bad-bg);
+            border-color: rgba(142, 47, 36, 0.42);
+            background: rgba(255, 241, 240, 0.70);
         }
 
         .result-block.warn {
-            border-color: #fed7aa;
-            background: var(--warn-bg);
+            border-color: rgba(161, 92, 7, 0.34);
+            background: rgba(255, 247, 232, 0.72);
         }
 
         .result-title {
             margin: 0 0 6px;
-            font-weight: 800;
+            font-weight: 850;
         }
 
         .result-title.ok {
-            color: var(--ok);
+            color: var(--ink-check);
         }
 
         .result-title.bad {
-            color: var(--bad);
+            color: var(--ink-cross);
         }
 
         .result-title.warn {
@@ -231,128 +301,210 @@
             padding-left: 20px;
         }
 
-        pre {
-            min-height: 280px;
-            max-height: 520px;
-            margin: 0;
-            overflow: auto;
+        li {
+            margin: 3px 0;
+            color: var(--text-secondary);
+            font-weight: 650;
+        }
+
+        .preview-panel[hidden],
+        .action-panel[hidden],
+        #standard-output[hidden] {
+            display: none;
+        }
+
+        .preview-title {
+            margin-top: 10px;
+            font-size: 1.18rem;
+            line-height: 1.35;
+        }
+
+        .preview-number {
+            margin-top: 2px;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+            font-size: 0.86rem;
+            font-weight: 850;
+        }
+
+        .preview-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin: 14px 0 18px;
+        }
+
+        .summary-item {
+            border: 1px solid rgba(199, 170, 122, 0.72);
             border-radius: 6px;
-            padding: 14px;
-            background: var(--code-bg);
-            color: var(--code-text);
-            font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-            white-space: pre;
+            padding: 10px;
+            background: rgba(255, 248, 232, 0.58);
         }
 
-        .output-header {
-            display: flex;
-            justify-content: space-between;
-            gap: 12px;
-            align-items: center;
-            margin-bottom: 12px;
+        .summary-label {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 0.76rem;
+            font-weight: 800;
         }
 
-        .copy-status {
-            color: var(--muted);
-            font-size: 13px;
+        .summary-value {
+            display: block;
+            margin-top: 2px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            font-weight: 850;
         }
 
-        .library-actions {
+        .preview-section {
+            margin-top: 16px;
+        }
+
+        .preview-section h3 {
+            margin-bottom: 8px;
+            color: #5A3A24;
+            font-size: 0.92rem;
+        }
+
+        .tag-list {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-            margin-top: 12px;
+            gap: 7px;
+        }
+
+        .tag {
+            border: 1px solid rgba(179, 135, 58, 0.38);
+            border-radius: 999px;
+            padding: 4px 9px;
+            background: rgba(255, 248, 232, 0.62);
+            color: var(--text-primary);
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .action-panel {
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.48), rgba(255,255,255,0.14)),
+                var(--bg-active);
         }
 
         @media (max-width: 900px) {
             .topbar,
-            .layout,
-            .output-header {
+            .layout {
                 display: block;
             }
 
-            .nav-links {
+            .top-actions {
                 justify-content: flex-start;
                 margin-top: 12px;
             }
 
-            .stack {
+            .layout .panel + .panel,
+            .right-column {
                 margin-top: 16px;
             }
+        }
 
-            .output-header button {
-                margin-top: 10px;
+        @media (max-width: 600px) {
+            .topbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .page {
+                width: min(100% - 28px, 1180px);
+                padding-top: 22px;
+            }
+
+            .preview-summary {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <main class="page">
-        <div class="topbar">
-            <div>
-                <h1>Case Uploader</h1>
-                <p class="subtitle">粘贴或上传 AI 生成的案件 JSON，先验证，再输出标准化 JSON。</p>
-            </div>
-            <nav class="nav-links" aria-label="工具导航">
-                <a href="../index.html">返回游戏首页</a>
-                <a href="validator.html">打开 Validator</a>
-            </nav>
+    <header class="topbar">
+        <div class="brand">
+            <h1>案件上传器</h1>
+            <p class="subtitle">导入案件 JSON，检查后生成可保存的案件内容。</p>
         </div>
+        <nav class="top-actions" aria-label="页面导航">
+            <a class="nav-btn" href="index.html">
+                <span data-lucide="undo" aria-label="返回工具中心"></span>
+                返回工具中心
+            </a>
+        </nav>
+    </header>
 
+    <div class="toolbar-strip">CASE UPLOADER</div>
+
+    <main class="page">
         <div class="layout">
             <section class="panel">
-                <h2>JSON 输入</h2>
-                <textarea id="json-input" spellcheck="false" placeholder='请粘贴案件 JSON，例如：&#10;{&#10;  "title": "雨夜美术馆失窃案",&#10;  "difficulty": "easy",&#10;  "suspects": [],&#10;  "weapons": [],&#10;  "locations": [],&#10;  "clues": [],&#10;  "solution": { "suspect": "S3", "weapon": "W1", "location": "L2" },&#10;  "fullTruth": []&#10;}'></textarea>
+                <h2 class="panel-title">
+                    <span data-lucide="upload" aria-hidden="true"></span>
+                    导入案件 JSON
+                </h2>
+                <p class="panel-note">粘贴或导入案件 JSON 内容，系统会检查基础结构。</p>
+
+                <textarea id="json-input" spellcheck="false" placeholder="请粘贴案件 JSON 内容，或通过下方按钮导入文件。"></textarea>
+
                 <div class="actions">
-                    <label class="file-label" for="json-file">上传 .json 文件</label>
+                    <label class="file-label" for="json-file">
+                        <span data-lucide="upload" aria-hidden="true"></span>
+                        导入文件
+                    </label>
                     <input id="json-file" type="file" accept=".json,application/json">
-                    <button class="primary" id="validate-button" type="button">验证案件</button>
-                    <button id="clear-button" type="button">清空</button>
+                    <button class="primary" id="validate-button" type="button">
+                        <span data-lucide="search" aria-hidden="true"></span>
+                        检查案件
+                    </button>
+                    <button id="clear-button" type="button">清空内容</button>
                     <span class="source-note" id="source-note">来源：粘贴输入</span>
                 </div>
             </section>
 
-            <div class="stack">
-                <section class="panel info">
-                    <p>上传文件名不需要规范化。系统会在加入案件库时自动生成标准文件名。</p>
-                    <p>案件 ID 不需要手动填写，入库时会自动生成 `case-001` 这样的编号。</p>
-                    <p>推荐未来格式为：`cases/case-001.json`、`cases/case-002.json`、`cases/case-003.json`。</p>
-                    <p>加入案件库会写入 `cases/case-xxx.json` 并更新 `case-index.json`。</p>
-                </section>
-
+            <div class="right-column">
                 <section class="panel">
-                    <h2>校验结果</h2>
+                    <h2 class="panel-title">
+                        <span data-lucide="circleHelp" aria-hidden="true"></span>
+                        检查结果
+                    </h2>
                     <div class="result-list" id="result-list">
                         <div class="result-block warn">
-                            <p class="result-title warn">等待验证</p>
-                            <p>粘贴 JSON 或上传文件后，点击“验证案件”。</p>
+                            <p class="result-title warn">等待导入案件内容</p>
+                            <p class="panel-note">粘贴内容或导入文件后，点击“检查案件”。</p>
                         </div>
                     </div>
                 </section>
 
-                <section class="panel">
-                    <div class="output-header">
-                        <div>
-                            <h2>标准化 JSON 输出</h2>
-                            <p class="source-note">解析和格式校验通过后显示。</p>
-                        </div>
-                        <div>
-                            <button id="copy-button" type="button" disabled>复制标准 JSON</button>
-                            <div class="copy-status" id="copy-status"></div>
-                        </div>
+                <section class="panel preview-panel" id="preview-panel" hidden>
+                    <h2 class="panel-title">
+                        <span data-lucide="library" aria-hidden="true"></span>
+                        案件预览
+                    </h2>
+                    <div id="case-preview"></div>
+                </section>
+
+                <section class="panel action-panel" id="action-panel" hidden>
+                    <h2 class="panel-title">
+                        <span data-lucide="download" aria-hidden="true"></span>
+                        生成案件内容
+                    </h2>
+                    <p class="panel-note" id="library-status">通过全部检查后可生成案件文件。</p>
+                    <div class="action-buttons">
+                        <button class="primary" id="add-library-button" type="button" disabled>生成案件文件</button>
+                        <button id="copy-button" type="button" disabled>复制案件内容</button>
                     </div>
-                    <pre id="standard-output">尚无标准化输出。</pre>
-                    <div class="library-actions">
-                        <button class="primary" id="add-library-button" type="button" disabled>加入案件库</button>
-                        <span class="copy-status" id="library-status">通过全部校验后可加入案件库。</span>
-                    </div>
+                    <div class="copy-status" id="copy-status"></div>
+                    <pre id="standard-output" hidden></pre>
                 </section>
             </div>
         </div>
     </main>
 
     <script src="../src/case-library.js"></script>
+    <script src="../src/lucide-icons.js"></script>
     <script src="../src/solver.js"></script>
     <script src="../src/validator.js"></script>
     <script>
@@ -365,6 +517,9 @@
         const copyStatusEl = document.getElementById('copy-status');
         const addLibraryButtonEl = document.getElementById('add-library-button');
         const libraryStatusEl = document.getElementById('library-status');
+        const previewPanelEl = document.getElementById('preview-panel');
+        const previewEl = document.getElementById('case-preview');
+        const actionPanelEl = document.getElementById('action-panel');
 
         let standardJson = '';
         let validatedCaseData = null;
@@ -378,11 +533,53 @@
                 .replaceAll("'", '&#039;');
         }
 
+        function hydrateStaticIcons() {
+            if (!window.CleverGridIcons) return;
+
+            document.querySelectorAll('[data-lucide]').forEach(el => {
+                const key = el.getAttribute('data-lucide');
+                const iconName = window.CleverGridIcons.toolIconMap[key] || key;
+                const label = el.getAttribute('aria-label') || '';
+                el.innerHTML = window.CleverGridIcons.render(iconName, { label });
+            });
+        }
+
+        function toUserMessage(message) {
+            return String(message || '')
+                .replaceAll('Solver', '解题器')
+                .replaceAll('fullTruth', '完整真相配置')
+                .replaceAll('solution', '答案配置')
+                .replaceAll('sourceClueId', '线索来源')
+                .replaceAll('entity id', '资源编号')
+                .replaceAll('difficulty', '难度')
+                .replaceAll('version', '版本')
+                .replaceAll('title', '案件标题')
+                .replaceAll('suspects', '嫌疑人')
+                .replaceAll('suspect', '嫌疑人')
+                .replaceAll('weapons', '凶器')
+                .replaceAll('weapon', '凶器')
+                .replaceAll('locations', '地点')
+                .replaceAll('location', '地点')
+                .replaceAll('clues', '线索')
+                .replaceAll('clue', '线索')
+                .replaceAll('rules', '推理规则')
+                .replaceAll('rule', '推理规则')
+                .replaceAll('type', '类型')
+                .replaceAll('left', '左侧资源')
+                .replaceAll('right', '右侧资源')
+                .replaceAll('name', '名称')
+                .replaceAll('same / notSame', '相同 / 不同')
+                .replaceAll('same', '相同')
+                .replaceAll('notSame', '不同')
+                .replace(/\bid\b/gi, '编号')
+                .replaceAll('easy / medium / hard / expert', '入门 / 普通 / 困难 / 专家');
+        }
+
         function renderBlock(state, title, messages) {
-            const safeMessages = Array.isArray(messages) ? messages : [];
+            const safeMessages = Array.isArray(messages) ? messages.map(toUserMessage) : [];
             const body = safeMessages.length
                 ? `<ul>${safeMessages.map(message => `<li>${escapeHtml(message)}</li>`).join('')}</ul>`
-                : '<p>通过</p>';
+                : '<p class="panel-note">通过</p>';
 
             return `
                 <div class="result-block ${state}">
@@ -402,44 +599,19 @@
                 error: 'bad'
             }[result.status] || 'bad';
             const title = {
-                unique: uniqueMismatch ? '唯一解验证：失败' : '唯一解验证：通过',
-                multiple: '唯一解验证：失败',
-                none: '唯一解验证：失败',
-                unsupported: '唯一解验证：暂未启用',
-                error: '唯一解验证：失败'
-            }[result.status] || '唯一解验证：失败';
+                unique: uniqueMismatch ? '唯一解检查失败' : '唯一解检查通过',
+                multiple: '唯一解检查失败',
+                none: '唯一解检查失败',
+                unsupported: '唯一解检查暂未启用',
+                error: '唯一解检查失败'
+            }[result.status] || '唯一解检查失败';
             const messages = Array.isArray(result.messages) ? result.messages.slice() : [];
 
             if (answerResult && answerResult.enabled && !answerResult.ok) {
-                messages.unshift('答案校验失败，solution 已不可信；以下唯一解验证仍基于当前 rules 执行。');
+                messages.unshift('答案检查失败，唯一解检查结果仅供参考。');
             }
 
-            const messageHtml = messages.length
-                ? `<ul>${messages.map(message => `<li>${escapeHtml(message)}</li>`).join('')}</ul>`
-                : '<p>通过</p>';
-            const sampleHtml = Array.isArray(result.solutions) && result.solutions.length
-                ? `
-                    <ul>
-                        ${result.solutions.map((solution, index) => `
-                            <li>
-                                解 ${index + 1}: ${escapeHtml(solution.text || '')}
-                                <details>
-                                    <summary>查看完整解</summary>
-                                    <pre>${escapeHtml(JSON.stringify(solution.fullTruth || [], null, 2))}</pre>
-                                </details>
-                            </li>
-                        `).join('')}
-                    </ul>
-                `
-                : '';
-
-            return `
-                <div class="result-block ${state}">
-                    <p class="result-title ${state}">${escapeHtml(title)}</p>
-                    ${messageHtml}
-                    ${sampleHtml}
-                </div>
-            `;
+            return renderBlock(state, title, messages);
         }
 
         function renderResults(blocks) {
@@ -449,19 +621,21 @@
         function resetOutput() {
             standardJson = '';
             validatedCaseData = null;
-            standardOutputEl.textContent = '尚无标准化输出。';
+            standardOutputEl.textContent = '';
             copyButtonEl.disabled = true;
             addLibraryButtonEl.disabled = true;
             copyStatusEl.textContent = '';
-            libraryStatusEl.textContent = '通过全部校验后可加入案件库。';
+            libraryStatusEl.textContent = '通过全部检查后可生成案件文件。';
+            previewPanelEl.hidden = true;
+            actionPanelEl.hidden = true;
+            previewEl.innerHTML = '';
         }
 
-        function buildParseError(error) {
+        function buildParseError() {
             return [
                 '请检查是否存在多余逗号。',
-                '请检查字符串是否使用双引号。',
-                '请检查是否存在未闭合的大括号。',
-                `技术提示：${error && error.message ? error.message : 'JSON 格式不合法'}`
+                '请检查文字是否使用双引号。',
+                '请检查是否存在未闭合的大括号。'
             ];
         }
 
@@ -490,6 +664,78 @@
             }
         }
 
+        function formatDifficulty(value) {
+            return window.CleverGridCaseLibrary.formatDifficulty(value) || '未标注';
+        }
+
+        function getCaseClues(data) {
+            return Array.isArray(data && data.clues) ? data.clues : [];
+        }
+
+        function formatDurationValue(value) {
+            if (value === undefined || value === null || value === '') return '';
+            if (typeof value === 'number' && Number.isFinite(value)) return `${value}分钟`;
+            return String(value);
+        }
+
+        function estimateDurationByClueCount(clueCount) {
+            if (clueCount <= 5) return '5-8分钟';
+            if (clueCount <= 10) return '10-15分钟';
+            if (clueCount <= 15) return '15-20分钟';
+            return '20-30分钟';
+        }
+
+        function getCaseDurationText(data) {
+            const durationFields = ['estimatedTime', 'estimatedDuration', 'estimatedMinutes', 'timeMinutes', 'duration', 'playTime'];
+            const explicitValue = durationFields
+                .map(field => data && data[field])
+                .find(value => value !== undefined && value !== null && value !== '');
+            return formatDurationValue(explicitValue) || estimateDurationByClueCount(getCaseClues(data).length);
+        }
+
+        function renderTags(title, items) {
+            const names = (Array.isArray(items) ? items : [])
+                .map(item => item && item.name)
+                .filter(Boolean);
+
+            if (!names.length) return '';
+
+            return `
+                <section class="preview-section">
+                    <h3>${escapeHtml(title)}</h3>
+                    <div class="tag-list">
+                        ${names.map(name => `<span class="tag">${escapeHtml(name)}</span>`).join('')}
+                    </div>
+                </section>
+            `;
+        }
+
+        function renderPreview(caseData) {
+            const clues = getCaseClues(caseData);
+            previewEl.innerHTML = `
+                <h3 class="preview-title">${escapeHtml(caseData.title || '未命名案件')}</h3>
+                <p class="preview-number">案件编号：保存时自动生成</p>
+                <div class="preview-summary">
+                    <div class="summary-item">
+                        <span class="summary-label">难度</span>
+                        <span class="summary-value">${escapeHtml(formatDifficulty(caseData.difficulty))}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">线索数</span>
+                        <span class="summary-value">${escapeHtml(clues.length)}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">预计时长</span>
+                        <span class="summary-value">${escapeHtml(getCaseDurationText(caseData))}</span>
+                    </div>
+                </div>
+                ${renderTags('嫌疑人', caseData.suspects)}
+                ${renderTags('凶器', caseData.weapons)}
+                ${renderTags('地点', caseData.locations)}
+            `;
+            previewPanelEl.hidden = false;
+        }
+
         function validateCurrentInput() {
             resetOutput();
 
@@ -497,37 +743,34 @@
             const blocks = [];
 
             if (!parseResult.ok) {
-                blocks.push(renderBlock('bad', 'JSON 解析失败', parseResult.messages));
-                blocks.push(renderBlock('warn', '格式校验', ['JSON 解析失败，已跳过格式校验。']));
-                blocks.push(renderBlock('warn', '答案校验', ['JSON 解析失败，已跳过答案校验。']));
-                blocks.push(renderBlock('warn', '唯一解验证', ['JSON 解析失败，已跳过唯一解验证。']));
+                blocks.push(renderBlock('bad', '案件内容解析失败', parseResult.messages));
+                blocks.push(renderBlock('warn', '案件结构检查已跳过', ['请先修正导入内容。']));
                 renderResults(blocks);
                 return;
             }
 
-            blocks.push(renderBlock('ok', 'JSON 解析：通过', []));
+            blocks.push(renderBlock('ok', '案件内容解析通过', []));
 
             const formatResult = window.CleverGridValidator.validateUploadedCase(parseResult.data);
             if (!formatResult.ok) {
-                blocks.push(renderBlock('bad', '格式校验失败', formatResult.errors));
-                blocks.push(renderBlock('warn', '答案校验', ['格式校验失败，已跳过答案校验。']));
-                blocks.push(renderBlock('warn', '唯一解验证', ['格式校验失败，已跳过唯一解验证。']));
+                blocks.push(renderBlock('bad', '案件结构检查失败', formatResult.errors));
+                blocks.push(renderBlock('warn', '答案检查已跳过', ['请先修正案件结构。']));
                 renderResults(blocks);
                 return;
             }
 
-            blocks.push(renderBlock('ok', '格式校验：通过', []));
+            blocks.push(renderBlock('ok', '案件结构检查通过', []));
             if (formatResult.warnings && formatResult.warnings.length) {
-                blocks.push(renderBlock('warn', '格式校验提醒', formatResult.warnings));
+                blocks.push(renderBlock('warn', '案件结构提醒', formatResult.warnings));
             }
 
             const answerResult = window.CleverGridValidator.validateUploadedCaseAnswer(parseResult.data);
             if (!answerResult.enabled) {
-                blocks.push(renderBlock('warn', '答案校验：暂未启用', answerResult.messages));
+                blocks.push(renderBlock('warn', '答案检查暂未启用', answerResult.messages));
             } else if (answerResult.ok) {
-                blocks.push(renderBlock('ok', '答案校验：通过', []));
+                blocks.push(renderBlock('ok', '答案检查通过', []));
             } else {
-                blocks.push(renderBlock('bad', '答案校验失败', answerResult.messages));
+                blocks.push(renderBlock('bad', '答案检查失败', answerResult.messages));
             }
 
             const uniqueResult = window.CleverGridValidator.validateUploadedUniqueSolution(parseResult.data);
@@ -537,6 +780,9 @@
             standardJson = JSON.stringify(normalized, null, 2);
             standardOutputEl.textContent = standardJson;
             copyButtonEl.disabled = false;
+            actionPanelEl.hidden = false;
+            renderPreview(normalized);
+
             const canAddToLibrary = answerResult.enabled
                 && answerResult.ok
                 && uniqueResult.status === 'unique'
@@ -544,8 +790,8 @@
             addLibraryButtonEl.disabled = !canAddToLibrary;
             validatedCaseData = canAddToLibrary ? normalized : null;
             libraryStatusEl.textContent = canAddToLibrary
-                ? '已通过全部校验，可以加入案件库。'
-                : '需要 JSON、格式、答案和唯一解验证全部通过后才能加入。';
+                ? '已通过全部检查，可以生成案件文件。'
+                : '需要结构、答案和唯一解检查全部通过后才能生成案件文件。';
             renderResults(blocks);
         }
 
@@ -559,12 +805,12 @@
                 sourceNoteEl.textContent = `来源：${file.name}`;
                 resetOutput();
                 renderResults([
-                    renderBlock('warn', '等待验证', [`已读取文件：${file.name}。点击“验证案件”开始校验。`])
+                    renderBlock('warn', '等待导入案件内容', [`已读取文件：${file.name}。点击“检查案件”开始检查。`])
                 ]);
             };
             reader.onerror = () => {
                 renderResults([
-                    renderBlock('bad', '文件读取失败', ['请重新选择 .json 文件，或直接粘贴 JSON。'])
+                    renderBlock('bad', '文件读取失败', ['请重新选择文件，或直接粘贴案件内容。'])
                 ]);
             };
             reader.readAsText(file);
@@ -583,7 +829,7 @@
             sourceNoteEl.textContent = '来源：粘贴输入';
             resetOutput();
             renderResults([
-                renderBlock('warn', '等待验证', ['粘贴 JSON 或上传文件后，点击“验证案件”。'])
+                renderBlock('warn', '等待导入案件内容', ['粘贴内容或导入文件后，点击“检查案件”。'])
             ]);
         });
 
@@ -592,14 +838,14 @@
 
             try {
                 await navigator.clipboard.writeText(standardJson);
-                copyStatusEl.textContent = '已复制';
+                copyStatusEl.textContent = '案件内容已复制';
             } catch (error) {
                 const selection = window.getSelection();
                 const range = document.createRange();
                 range.selectNodeContents(standardOutputEl);
                 selection.removeAllRanges();
                 selection.addRange(range);
-                copyStatusEl.textContent = '已选中，请手动复制';
+                copyStatusEl.textContent = '已选中案件内容，请手动复制';
             }
         });
 
@@ -607,20 +853,22 @@
             if (!validatedCaseData) return;
 
             if (!window.showDirectoryPicker) {
-                libraryStatusEl.textContent = '当前浏览器不支持直接写入文件夹。请使用支持 File System Access API 的浏览器。';
+                libraryStatusEl.textContent = '当前浏览器不支持直接保存到项目文件夹。请复制案件内容后手动保存。';
                 return;
             }
 
             try {
                 libraryStatusEl.textContent = '请选择 CleverGrid 项目文件夹。';
-                const result = await window.CleverGridCaseLibrary.addCaseToDirectory(validatedCaseData);
-                libraryStatusEl.textContent = `案件已入库：${result.id}`;
+                await window.CleverGridCaseLibrary.addCaseToDirectory(validatedCaseData);
+                libraryStatusEl.textContent = '案件文件已生成。';
                 addLibraryButtonEl.disabled = true;
                 validatedCaseData = null;
             } catch (error) {
-                libraryStatusEl.textContent = `入库失败：${error && error.message ? error.message : '未完成写入。'}`;
+                libraryStatusEl.textContent = '生成案件文件失败，请确认已选择正确的项目文件夹。';
             }
         });
+
+        hydrateStaticIcons();
     </script>
 </body>
 </html>

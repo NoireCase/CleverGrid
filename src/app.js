@@ -175,6 +175,10 @@ const debugSystem = {
         document.body.classList.toggle('debug-xray');
     },
 
+    openToolsHub() {
+        window.open('tools/index.html', '_blank', 'noopener');
+    },
+
     unlockAll() {
         game.solvedLevels = new Array(GAME_DATA.length).fill(true);
         game.solvedCases = {};

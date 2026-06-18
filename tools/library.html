@@ -3,217 +3,505 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Case Library Manager</title>
+    <title>案件库</title>
     <style>
         :root {
-            --bg: #f5f7fa;
-            --panel: #fff;
-            --text: #24313d;
-            --muted: #667085;
-            --border: #d6dde6;
-            --accent: #2563eb;
-            --ok-bg: #edf8f2;
+            --bg-app: #D8C3A0;
+            --bg-panel: #F6EBD6;
+            --bg-paper: #FFF8E8;
+            --bg-subtle: #EAD9B9;
+            --bg-active: #F4E1B3;
+            --bg-leather: #3B2418;
+            --text-primary: #2B2119;
+            --text-secondary: #7C6752;
+            --text-disabled: #B8A58B;
+            --accent-focus: #B3873A;
+            --accent-brass: #C39A4A;
+            --border-main: #C7AA7A;
+            --border-paper: #D8BD8C;
+            --shadow-card: 0 2px 5px rgba(58, 36, 24, 0.10), 0 1px 1px rgba(58, 36, 24, 0.12);
+            --font-sans: "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+            --font-mono: "Roboto Mono", "Courier New", monospace;
         }
 
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
 
         body {
+            min-height: 100vh;
             margin: 0;
-            background: var(--bg);
-            color: var(--text);
-            font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+            background:
+                radial-gradient(circle at 16% 12%, rgba(255, 248, 232, 0.32), transparent 30%),
+                linear-gradient(135deg, #C19A67 0%, var(--bg-app) 42%, #B78D57 100%);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
             line-height: 1.6;
         }
 
-        .page {
-            max-width: 1180px;
-            margin: 0 auto;
-            padding: 28px 20px 48px;
-        }
-
-        .topbar,
-        .layout {
-            display: grid;
-            gap: 16px;
-        }
-
-        .topbar {
-            grid-template-columns: 1fr auto;
-            align-items: start;
-            margin-bottom: 20px;
-        }
-
-        .layout {
-            grid-template-columns: minmax(0, 1fr) minmax(340px, 0.75fr);
-            align-items: start;
-        }
-
-        h1, h2, h3, p { margin: 0; }
-        h1 { font-size: 28px; }
-        h2 { font-size: 18px; margin-bottom: 12px; }
-        h3 { font-size: 16px; margin: 14px 0 8px; }
-
-        .subtitle,
-        .muted {
-            color: var(--muted);
-            font-size: 14px;
-        }
-
-        .nav-links {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            justify-content: flex-end;
-        }
-
         a {
-            color: var(--accent);
-            font-weight: 700;
+            color: inherit;
             text-decoration: none;
         }
 
-        a:hover { text-decoration: underline; }
+        .topbar {
+            min-height: 64px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            padding: 14px 24px;
+            background:
+                linear-gradient(180deg, rgba(255, 248, 232, 0.92) 0%, rgba(238, 219, 185, 0.95) 100%);
+            border-bottom: 2px solid #8C653A;
+            box-shadow: 0 2px 10px rgba(59, 36, 24, 0.18);
+        }
 
-        .panel {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 18px;
-            box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06);
+        .brand {
+            min-width: 0;
+        }
+
+        h1,
+        h2,
+        h3,
+        p {
+            margin: 0;
+        }
+
+        h1 {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            line-height: 1.25;
+            letter-spacing: 0;
+        }
+
+        .subtitle {
+            margin-top: 4px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .top-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .nav-btn,
+        .filter-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 36px;
+            border: 1px solid rgba(92, 61, 38, 0.45);
+            border-radius: 4px;
+            background: rgba(255, 248, 232, 0.38);
+            color: var(--text-primary);
+            font: inherit;
+            font-size: 0.86rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .nav-btn {
+            padding: 7px 14px;
+        }
+
+        .nav-btn:hover,
+        .filter-btn:hover {
+            background: var(--bg-paper);
+            border-color: var(--accent-focus);
+        }
+
+        .toolbar-strip {
+            min-height: 48px;
+            background: linear-gradient(180deg, rgba(59, 36, 24, 0.96) 0%, rgba(47, 29, 20, 0.96) 100%);
+            border-bottom: 1px solid rgba(123, 84, 46, 0.72);
+            color: #EBD9B7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 8px 20px;
+            font-size: 0.82rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+
+        .page {
+            width: min(1180px, calc(100% - 40px));
+            margin: 0 auto;
+            padding: 28px 0 48px;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: minmax(260px, 1fr) auto;
+            gap: 14px;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .search-wrap {
+            position: relative;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            width: 18px;
+            height: 18px;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            pointer-events: none;
+        }
+
+        .search-icon .lucide-icon {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .nav-btn .lucide-icon {
+            width: 18px;
+            height: 18px;
+            display: block;
+            flex-shrink: 0;
         }
 
         input {
             width: 100%;
-            min-height: 38px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 8px 10px;
+            min-height: 42px;
+            border: 1px solid var(--border-paper);
+            border-radius: 8px;
+            padding: 9px 12px 9px 42px;
+            background: rgba(255, 248, 232, 0.78);
+            color: var(--text-primary);
             font: inherit;
+            font-weight: 650;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.62);
         }
 
-        table {
+        input:focus {
+            outline: 2px solid rgba(179, 135, 58, 0.22);
+            border-color: var(--accent-focus);
+            background: var(--bg-paper);
+        }
+
+        .filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .filter-btn {
+            padding: 7px 13px;
+        }
+
+        .filter-btn.active {
+            background: var(--bg-leather);
+            color: #FFF8E8;
+            border-color: var(--accent-brass);
+            box-shadow: inset 0 0 0 1px rgba(195, 154, 74, 0.18);
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.72fr);
+            gap: 16px;
+            align-items: start;
+        }
+
+        .panel {
+            border: 1px solid var(--border-paper);
+            border-radius: 8px;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.38) 0%, rgba(255, 248, 232, 0.14) 100%),
+                var(--bg-panel);
+            box-shadow: var(--shadow-card);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 18px 0;
+        }
+
+        h2 {
+            font-size: 1.05rem;
+            color: #3A2418;
+        }
+
+        .count-pill {
+            flex-shrink: 0;
+            border: 1px solid rgba(179, 135, 58, 0.38);
+            border-radius: 999px;
+            padding: 3px 9px;
+            background: rgba(255, 248, 232, 0.58);
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            font-weight: 800;
+        }
+
+        .case-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 12px;
+            padding: 16px 18px 18px;
+        }
+
+        .case-card {
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 14px;
-            font-size: 14px;
-        }
-
-        th, td {
-            padding: 10px 8px;
-            border-bottom: 1px solid var(--border);
+            min-height: 178px;
+            border: 1px solid var(--border-paper);
+            border-radius: 8px;
+            padding: 14px;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255, 248, 232, 0.42) 100%),
+                var(--bg-paper);
+            color: var(--text-primary);
             text-align: left;
-            vertical-align: top;
-        }
-
-        th {
-            color: var(--muted);
-            font-size: 13px;
-            background: #f8fafc;
-        }
-
-        tr.case-row {
+            font: inherit;
             cursor: pointer;
+            box-shadow: 0 1px 3px rgba(58, 36, 24, 0.07);
+            transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
         }
 
-        tr.case-row:hover {
-            background: #eef4ff;
+        .case-card:hover {
+            border-color: var(--accent-focus);
+            box-shadow: 0 5px 14px rgba(58, 36, 24, 0.14);
+            transform: translateY(-2px);
         }
 
-        tr.case-row.active {
-            background: var(--ok-bg);
+        .case-card.active {
+            border-color: var(--bg-leather);
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.58), rgba(255,255,255,0.18)),
+                var(--bg-active);
+            box-shadow: inset 0 0 0 1px rgba(90, 58, 36, 0.16), 0 4px 12px rgba(58, 36, 24, 0.13);
+        }
+
+        .case-number {
+            display: inline-flex;
+            align-items: center;
+            min-height: 24px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(179, 135, 58, 0.40);
+            border-radius: 4px;
+            padding: 2px 7px;
+            background: rgba(234, 217, 185, 0.74);
+            color: #5A3A24;
+            font-family: var(--font-mono);
+            font-size: 0.76rem;
+            font-weight: 800;
+        }
+
+        .case-title {
+            margin-bottom: 12px;
+            color: #2B1D13;
+            font-size: 1.02rem;
+            font-weight: 850;
+            line-height: 1.35;
+        }
+
+        .case-meta {
+            display: grid;
+            gap: 5px;
+            color: var(--text-secondary);
+            font-size: 0.86rem;
+            font-weight: 650;
+        }
+
+        .empty-state,
+        .loading-state {
+            padding: 38px 18px 42px;
+            color: var(--text-secondary);
+            text-align: center;
+            font-weight: 800;
+        }
+
+        .detail-panel {
+            position: sticky;
+            top: 18px;
+            padding: 18px;
+        }
+
+        .detail-title {
+            margin-bottom: 6px;
+            font-size: 1.2rem;
+            line-height: 1.35;
+        }
+
+        .detail-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin: 14px 0 18px;
+        }
+
+        .summary-item {
+            border: 1px solid rgba(199, 170, 122, 0.72);
+            border-radius: 6px;
+            padding: 10px;
+            background: rgba(255, 248, 232, 0.58);
+        }
+
+        .summary-label {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 0.76rem;
+            font-weight: 800;
+        }
+
+        .summary-value {
+            display: block;
+            margin-top: 2px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            font-weight: 850;
+        }
+
+        .detail-section {
+            margin-top: 16px;
+        }
+
+        .detail-section h3 {
+            margin-bottom: 8px;
+            color: #5A3A24;
+            font-size: 0.92rem;
         }
 
         .tag-list {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
+            gap: 7px;
         }
 
         .tag {
-            border: 1px solid var(--border);
+            border: 1px solid rgba(179, 135, 58, 0.38);
             border-radius: 999px;
-            padding: 3px 8px;
-            background: #fff;
-            font-size: 13px;
+            padding: 4px 9px;
+            background: rgba(255, 248, 232, 0.62);
+            color: var(--text-primary);
+            font-size: 0.82rem;
+            font-weight: 700;
         }
 
-        pre {
-            max-height: 280px;
-            overflow: auto;
-            margin: 10px 0 0;
-            padding: 12px;
-            border-radius: 6px;
-            background: #111827;
-            color: #e5e7eb;
-            font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        .muted {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 600;
         }
 
         @media (max-width: 900px) {
             .topbar,
+            .controls,
             .layout {
                 display: block;
             }
 
-            .nav-links {
+            .top-actions,
+            .filter-group {
                 justify-content: flex-start;
                 margin-top: 12px;
             }
 
-            .panel + .panel,
             .layout .panel + .panel {
                 margin-top: 16px;
+            }
+
+            .detail-panel {
+                position: static;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .topbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .page {
+                width: min(100% - 28px, 1180px);
+                padding-top: 22px;
+            }
+
+            .case-grid,
+            .detail-summary {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <main class="page">
-        <div class="topbar">
-            <div>
-                <h1>Case Library Manager</h1>
-                <p class="subtitle">查看正式案件库、搜索案件，并读取案件详情。</p>
-            </div>
-            <nav class="nav-links" aria-label="工具导航">
-                <a href="../index.html">返回游戏首页</a>
-                <a href="uploader.html">打开 Uploader</a>
-                <a href="validator.html">打开 Validator</a>
-            </nav>
+    <header class="topbar">
+        <div class="brand">
+            <h1>案件库</h1>
+            <p class="subtitle">查看、搜索和管理当前案件资源。</p>
         </div>
+        <nav class="top-actions" aria-label="页面导航">
+            <a class="nav-btn" href="index.html">
+                <span data-lucide="undo" aria-label="返回工具中心"></span>
+                返回工具中心
+            </a>
+        </nav>
+    </header>
+
+    <div class="toolbar-strip">Case Library</div>
+
+    <main class="page">
+        <section class="controls" aria-label="案件搜索和筛选">
+            <div class="search-wrap">
+                <span class="search-icon" data-lucide="search" aria-hidden="true"></span>
+                <input id="search-input" type="search" placeholder="搜索案件标题">
+            </div>
+            <div class="filter-group" aria-label="难度筛选">
+                <button class="filter-btn active" type="button" data-filter="all">全部</button>
+                <button class="filter-btn" type="button" data-filter="easy">入门</button>
+                <button class="filter-btn" type="button" data-filter="medium">普通</button>
+                <button class="filter-btn" type="button" data-filter="hard">困难</button>
+            </div>
+        </section>
 
         <div class="layout">
-            <section class="panel">
-                <h2>案件列表</h2>
-                <input id="search-input" type="search" placeholder="按 Case ID 或 Title 搜索">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Case ID</th>
-                            <th>Title</th>
-                            <th>Difficulty</th>
-                            <th>File Path</th>
-                        </tr>
-                    </thead>
-                    <tbody id="case-list"></tbody>
-                </table>
+            <section class="panel" aria-labelledby="case-list-title">
+                <div class="panel-header">
+                    <h2 id="case-list-title">案件列表</h2>
+                    <span class="count-pill" id="case-count">0 个案件</span>
+                </div>
+                <div class="case-grid" id="case-list"></div>
             </section>
 
-            <section class="panel">
-                <h2>案件详情</h2>
+            <aside class="panel detail-panel" aria-labelledby="case-detail-title">
+                <h2 id="case-detail-title">案件详情</h2>
                 <div id="case-detail">
-                    <p class="muted">点击左侧案件查看详情。</p>
+                    <p class="muted">选择一个案件查看资源概览。</p>
                 </div>
-            </section>
+            </aside>
         </div>
     </main>
 
     <script src="../src/case-library.js"></script>
+    <script src="../src/lucide-icons.js"></script>
     <script>
         const listEl = document.getElementById('case-list');
         const detailEl = document.getElementById('case-detail');
         const searchEl = document.getElementById('search-input');
+        const countEl = document.getElementById('case-count');
+        const filterButtons = Array.from(document.querySelectorAll('.filter-btn'));
 
         let indexData = { version: 1, cases: [] };
+        let caseDetails = {};
         let selectedId = '';
+        let activeFilter = 'all';
 
         function escapeHtml(value) {
             return String(value || '')
@@ -224,82 +512,216 @@
                 .replaceAll("'", '&#039;');
         }
 
+        function hydrateStaticIcons() {
+            if (!window.CleverGridIcons) return;
+
+            document.querySelectorAll('[data-lucide]').forEach(el => {
+                const key = el.getAttribute('data-lucide');
+                const iconName = window.CleverGridIcons.toolIconMap[key] || key;
+                const label = el.getAttribute('aria-label') || '';
+                el.innerHTML = window.CleverGridIcons.render(iconName, { label });
+            });
+        }
+
         function formatDifficulty(value) {
             return window.CleverGridCaseLibrary.formatDifficulty(value);
         }
 
+        function normalizeDifficulty(value) {
+            return window.CleverGridCaseLibrary.normalizeDifficulty(value);
+        }
+
+        function getDifficultyGroup(value) {
+            const difficulty = normalizeDifficulty(value);
+            if (difficulty === 'easy') return 'easy';
+            if (difficulty === 'medium') return 'medium';
+            if (difficulty === 'hard' || difficulty === 'expert') return 'hard';
+            return '';
+        }
+
+        function getCaseNumber(id, index) {
+            const match = String(id || '').match(/(\d+)/);
+            const number = match ? Number(match[1]) : index + 1;
+            return `CASE ${String(number).padStart(2, '0')}`;
+        }
+
+        function getCaseClues(data) {
+            return Array.isArray(data && data.clues) ? data.clues : [];
+        }
+
+        function formatDurationValue(value) {
+            if (value === undefined || value === null || value === '') return '';
+            if (typeof value === 'number' && Number.isFinite(value)) return `${value}分钟`;
+            return String(value);
+        }
+
+        function estimateDurationByClueCount(clueCount) {
+            if (clueCount <= 5) return '5-8分钟';
+            if (clueCount <= 10) return '10-15分钟';
+            if (clueCount <= 15) return '15-20分钟';
+            return '20-30分钟';
+        }
+
+        function getCaseDurationText(data) {
+            const durationFields = ['estimatedTime', 'estimatedDuration', 'estimatedMinutes', 'timeMinutes', 'duration', 'playTime'];
+            const explicitValue = durationFields
+                .map(field => data && data[field])
+                .find(value => value !== undefined && value !== null && value !== '');
+            return formatDurationValue(explicitValue) || estimateDurationByClueCount(getCaseClues(data).length);
+        }
+
+        function getCaseViewModel(item, index) {
+            const detail = caseDetails[item.id] || {};
+            const clues = getCaseClues(detail);
+            return {
+                id: item.id,
+                title: detail.title || item.title || '未命名案件',
+                number: getCaseNumber(item.id, index),
+                difficulty: formatDifficulty(detail.difficulty || item.difficulty) || '未标注',
+                difficultyGroup: getDifficultyGroup(detail.difficulty || item.difficulty),
+                clueCount: clues.length,
+                duration: getCaseDurationText(detail)
+            };
+        }
+
         function filteredCases() {
             const query = searchEl.value.trim().toLowerCase();
-            if (!query) return indexData.cases;
-            return indexData.cases.filter(item => {
-                return item.id.toLowerCase().includes(query)
-                    || item.title.toLowerCase().includes(query);
+            return indexData.cases.filter((item, index) => {
+                const view = getCaseViewModel(item, index);
+                const matchesTitle = !query || view.title.toLowerCase().includes(query);
+                const matchesDifficulty = activeFilter === 'all' || view.difficultyGroup === activeFilter;
+                return matchesTitle && matchesDifficulty;
             });
         }
 
         function renderList() {
             const rows = filteredCases();
-            listEl.innerHTML = rows.map(item => `
-                <tr class="case-row ${item.id === selectedId ? 'active' : ''}" data-id="${escapeHtml(item.id)}">
-                    <td>${escapeHtml(item.id)}</td>
-                    <td>${escapeHtml(item.title)}</td>
-                    <td>${escapeHtml(formatDifficulty(item.difficulty))}</td>
-                    <td>${escapeHtml(item.file)}</td>
-                </tr>
-            `).join('');
+            countEl.textContent = `${rows.length} 个案件`;
+
+            if (!rows.length) {
+                listEl.innerHTML = '<div class="empty-state">暂无符合条件的案件</div>';
+                return;
+            }
+
+            listEl.innerHTML = rows.map(item => {
+                const index = indexData.cases.findIndex(caseItem => caseItem.id === item.id);
+                const view = getCaseViewModel(item, index);
+                return `
+                    <button class="case-card ${item.id === selectedId ? 'active' : ''}" type="button" data-id="${escapeHtml(item.id)}">
+                        <span class="case-number">${escapeHtml(view.number)}</span>
+                        <h3 class="case-title">${escapeHtml(view.title)}</h3>
+                        <span class="case-meta">
+                            <span>难度：${escapeHtml(view.difficulty)}</span>
+                            <span>线索：${escapeHtml(view.clueCount)}</span>
+                            <span>时长：${escapeHtml(view.duration)}</span>
+                        </span>
+                    </button>
+                `;
+            }).join('');
         }
 
         function renderTags(title, items) {
+            const names = (Array.isArray(items) ? items : [])
+                .map(item => item && item.name)
+                .filter(Boolean);
+
+            if (!names.length) return '';
+
             return `
-                <h3>${escapeHtml(title)}</h3>
-                <div class="tag-list">
-                    ${(Array.isArray(items) ? items : []).map(item => `
-                        <span class="tag">${escapeHtml(item.id)} · ${escapeHtml(item.name)}</span>
-                    `).join('')}
-                </div>
+                <section class="detail-section">
+                    <h3>${escapeHtml(title)}</h3>
+                    <div class="tag-list">
+                        ${names.map(name => `<span class="tag">${escapeHtml(name)}</span>`).join('')}
+                    </div>
+                </section>
             `;
         }
 
-        function renderDetail(caseData) {
+        function renderDetail(caseData, entry) {
+            const index = indexData.cases.findIndex(item => item.id === entry.id);
+            const view = getCaseViewModel(entry, index);
+
             detailEl.innerHTML = `
-                <h3>${escapeHtml(caseData.title)}</h3>
-                <p class="muted">${escapeHtml(formatDifficulty(caseData.difficulty))}</p>
-                ${renderTags('Suspects', caseData.suspects)}
-                ${renderTags('Weapons', caseData.weapons)}
-                ${renderTags('Locations', caseData.locations)}
-                <h3>Solution</h3>
-                <pre>${escapeHtml(JSON.stringify(caseData.solution, null, 2))}</pre>
+                <h3 class="detail-title">${escapeHtml(view.title)}</h3>
+                <p class="muted">${escapeHtml(view.number)}</p>
+                <div class="detail-summary">
+                    <div class="summary-item">
+                        <span class="summary-label">难度</span>
+                        <span class="summary-value">${escapeHtml(view.difficulty)}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">线索</span>
+                        <span class="summary-value">${escapeHtml(view.clueCount)}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">时长</span>
+                        <span class="summary-value">${escapeHtml(view.duration)}</span>
+                    </div>
+                </div>
+                ${renderTags('嫌疑人', caseData.suspects)}
+                ${renderTags('凶器', caseData.weapons)}
+                ${renderTags('地点', caseData.locations)}
             `;
         }
 
-        listEl.addEventListener('click', async event => {
-            const row = event.target.closest('.case-row');
-            if (!row) return;
+        async function fetchCase(entry) {
+            if (caseDetails[entry.id]) return caseDetails[entry.id];
+            const response = await fetch(`../${entry.file}`, { cache: 'no-store' });
+            if (!response.ok) throw new Error(entry.file);
+            const data = await response.json();
+            caseDetails[entry.id] = data;
+            return data;
+        }
 
-            selectedId = row.dataset.id;
+        async function selectCase(id) {
+            selectedId = id;
             renderList();
 
             const entry = indexData.cases.find(item => item.id === selectedId);
             if (!entry) return;
 
             try {
-                const response = await fetch(`../${entry.file}`, { cache: 'no-store' });
-                if (!response.ok) throw new Error(entry.file);
-                renderDetail(await response.json());
+                const data = await fetchCase(entry);
+                renderDetail(data, entry);
             } catch (error) {
-                detailEl.innerHTML = `<p class="muted">案件读取失败：${escapeHtml(entry.file)}</p>`;
+                detailEl.innerHTML = '<p class="muted">案件读取失败，请稍后再试。</p>';
             }
+        }
+
+        listEl.addEventListener('click', event => {
+            const card = event.target.closest('.case-card');
+            if (!card) return;
+            selectCase(card.dataset.id);
         });
 
         searchEl.addEventListener('input', renderList);
 
-        window.CleverGridCaseLibrary.loadIndex('../case-index.json')
-            .then(index => {
-                indexData = index;
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                activeFilter = button.dataset.filter;
+                filterButtons.forEach(item => item.classList.toggle('active', item === button));
                 renderList();
+            });
+        });
+
+        hydrateStaticIcons();
+        listEl.innerHTML = '<div class="loading-state">案件读取中...</div>';
+
+        window.CleverGridCaseLibrary.loadIndex('../case-index.json')
+            .then(async index => {
+                indexData = index;
+                const loadedCases = await Promise.all(indexData.cases.map(entry => {
+                    return fetchCase(entry).catch(() => null);
+                }));
+                loadedCases.forEach((data, index) => {
+                    if (data) caseDetails[indexData.cases[index].id] = data;
+                });
+                renderList();
+                if (indexData.cases.length) selectCase(indexData.cases[0].id);
             })
             .catch(error => {
-                listEl.innerHTML = `<tr><td colspan="4">案件索引读取失败，请检查 case-index.json。</td></tr>`;
+                listEl.innerHTML = '<div class="empty-state">暂无符合条件的案件</div>';
+                detailEl.innerHTML = '<p class="muted">案件库读取失败，请检查案件资源。</p>';
             });
     </script>
 </body>

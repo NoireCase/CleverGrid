@@ -3,21 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CleverGrid 案件数据校验工具</title>
+    <title>案件校验器</title>
     <style>
         :root {
-            --bg: #f4f6f8;
-            --panel: #ffffff;
-            --text: #263238;
-            --muted: #6b7280;
-            --border: #d8dee6;
-            --ok: #1f7a4d;
-            --bad: #b3261e;
-            --warn: #b45309;
-            --warn-bg: #fff7ed;
-            --ok-bg: #eefbf4;
-            --bad-bg: #fff1f0;
-            --accent: #2962ff;
+            --bg-app: #D8C3A0;
+            --bg-panel: #F6EBD6;
+            --bg-paper: #FFF8E8;
+            --bg-subtle: #EAD9B9;
+            --bg-active: #F4E1B3;
+            --bg-leather: #3B2418;
+            --text-primary: #2B2119;
+            --text-secondary: #7C6752;
+            --text-disabled: #B8A58B;
+            --accent-focus: #B3873A;
+            --accent-brass: #C39A4A;
+            --ink-check: #2F6844;
+            --ink-cross: #8E2F24;
+            --warn: #A15C07;
+            --border-main: #C7AA7A;
+            --border-paper: #D8BD8C;
+            --shadow-card: 0 2px 5px rgba(58, 36, 24, 0.10), 0 1px 1px rgba(58, 36, 24, 0.12);
+            --font-sans: "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+            --font-mono: "Roboto Mono", "Courier New", monospace;
         }
 
         * {
@@ -25,250 +32,642 @@
         }
 
         body {
+            min-height: 100vh;
             margin: 0;
-            background: var(--bg);
-            color: var(--text);
-            font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+            background:
+                radial-gradient(circle at 16% 12%, rgba(255, 248, 232, 0.32), transparent 30%),
+                linear-gradient(135deg, #C19A67 0%, var(--bg-app) 42%, #B78D57 100%);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
             line-height: 1.6;
         }
 
-        .page {
-            max-width: 1120px;
-            margin: 0 auto;
-            padding: 28px 20px 48px;
+        a {
+            color: inherit;
+            text-decoration: none;
         }
 
         .topbar {
+            min-height: 64px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 16px;
-            margin-bottom: 24px;
+            gap: 20px;
+            padding: 14px 24px;
+            background:
+                linear-gradient(180deg, rgba(255, 248, 232, 0.92) 0%, rgba(238, 219, 185, 0.95) 100%);
+            border-bottom: 2px solid #8C653A;
+            box-shadow: 0 2px 10px rgba(59, 36, 24, 0.18);
         }
 
-        .home-link {
-            color: var(--accent);
-            text-decoration: none;
-            font-weight: 700;
+        .brand {
+            min-width: 0;
         }
 
-        .home-link:hover {
-            text-decoration: underline;
+        h1,
+        h2,
+        h3,
+        p {
+            margin: 0;
         }
 
         h1 {
-            margin: 0;
-            font-size: 28px;
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
             line-height: 1.25;
+            letter-spacing: 0;
         }
 
         .subtitle {
-            margin: 6px 0 0;
-            color: var(--muted);
-            font-size: 14px;
+            margin-top: 4px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .top-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .nav-btn,
+        .filter-btn,
+        .card-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 38px;
+            border: 1px solid rgba(92, 61, 38, 0.45);
+            border-radius: 4px;
+            background: rgba(255, 248, 232, 0.42);
+            color: var(--text-primary);
+            font: inherit;
+            font-size: 0.86rem;
+            font-weight: 800;
+            cursor: pointer;
+            padding: 8px 14px;
+        }
+
+        .nav-btn:hover,
+        .filter-btn:hover,
+        .card-action:hover {
+            background: var(--bg-paper);
+            border-color: var(--accent-focus);
+        }
+
+        .filter-btn.active {
+            background: var(--bg-leather);
+            color: #FFF8E8;
+            border-color: var(--accent-brass);
+            box-shadow: inset 0 0 0 1px rgba(195, 154, 74, 0.18);
+        }
+
+        .nav-btn .lucide-icon {
+            width: 18px;
+            height: 18px;
+            display: block;
+            flex-shrink: 0;
+        }
+
+        .toolbar-strip {
+            min-height: 48px;
+            background: linear-gradient(180deg, rgba(59, 36, 24, 0.96) 0%, rgba(47, 29, 20, 0.96) 100%);
+            border-bottom: 1px solid rgba(123, 84, 46, 0.72);
+            color: #EBD9B7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 8px 20px;
+            font-size: 0.82rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+
+        .page {
+            width: min(1180px, calc(100% - 40px));
+            margin: 0 auto;
+            padding: 28px 0 48px;
         }
 
         .summary {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 12px;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         .summary-card,
-        .case-card {
-            background: var(--panel);
-            border: 1px solid var(--border);
+        .case-card,
+        .controls,
+        .error-box {
+            border: 1px solid var(--border-paper);
             border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.38) 0%, rgba(255, 248, 232, 0.14) 100%),
+                var(--bg-panel);
+            box-shadow: var(--shadow-card);
         }
 
         .summary-card {
-            padding: 14px 16px;
+            padding: 15px 16px;
         }
 
         .summary-label {
-            color: var(--muted);
-            font-size: 13px;
-        }
-
-        .summary-value {
-            margin-top: 4px;
-            font-size: 24px;
+            color: var(--text-secondary);
+            font-size: 0.82rem;
             font-weight: 800;
         }
 
+        .summary-value {
+            margin-top: 3px;
+            font-size: 1.7rem;
+            font-weight: 900;
+            line-height: 1.15;
+        }
+
         .summary-value.ok {
-            color: var(--ok);
+            color: var(--ink-check);
         }
 
         .summary-value.bad {
-            color: var(--bad);
+            color: var(--ink-cross);
         }
 
         .summary-value.warn {
             color: var(--warn);
         }
 
+        .controls {
+            display: grid;
+            grid-template-columns: minmax(260px, 1fr) auto;
+            gap: 14px;
+            align-items: center;
+            margin-bottom: 16px;
+            padding: 14px;
+        }
+
+        .search-wrap {
+            position: relative;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            width: 18px;
+            height: 18px;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            pointer-events: none;
+        }
+
+        .search-icon .lucide-icon {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        input {
+            width: 100%;
+            min-height: 42px;
+            border: 1px solid var(--border-paper);
+            border-radius: 8px;
+            padding: 9px 12px 9px 42px;
+            background: rgba(255, 248, 232, 0.78);
+            color: var(--text-primary);
+            font: inherit;
+            font-weight: 650;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.62);
+        }
+
+        input:focus {
+            outline: 2px solid rgba(179, 135, 58, 0.22);
+            border-color: var(--accent-focus);
+            background: var(--bg-paper);
+        }
+
+        .filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
         .case-list {
             display: grid;
-            gap: 14px;
+            gap: 12px;
         }
 
         .case-card {
-            padding: 18px;
+            padding: 16px;
+            border-left-width: 5px;
+        }
+
+        .case-card.bad {
+            border-left-color: var(--ink-cross);
+        }
+
+        .case-card.warn {
+            border-left-color: var(--warn);
+        }
+
+        .case-card.ok {
+            border-left-color: var(--ink-check);
         }
 
         .case-header {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 14px;
+            align-items: start;
+        }
+
+        .case-title-row {
             display: flex;
-            justify-content: space-between;
-            gap: 16px;
-            align-items: flex-start;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 9px;
+            align-items: baseline;
+        }
+
+        .case-number {
+            border: 1px solid rgba(179, 135, 58, 0.40);
+            border-radius: 4px;
+            padding: 2px 7px;
+            background: rgba(234, 217, 185, 0.74);
+            color: #5A3A24;
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            font-weight: 850;
         }
 
         .case-title {
-            margin: 0;
-            font-size: 20px;
+            font-size: 1.08rem;
+            line-height: 1.35;
         }
 
-        .case-meta {
-            margin-top: 4px;
-            color: var(--muted);
-            font-size: 13px;
+        .case-meta,
+        .case-check-counts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 14px;
+            margin-top: 8px;
+            color: var(--text-secondary);
+            font-size: 0.86rem;
+            font-weight: 700;
         }
 
         .badge {
             flex-shrink: 0;
-            padding: 4px 10px;
+            align-self: start;
             border-radius: 999px;
-            font-size: 13px;
-            font-weight: 800;
+            padding: 5px 11px;
+            font-size: 0.8rem;
+            font-weight: 900;
         }
 
         .badge.ok {
-            background: var(--ok-bg);
-            color: var(--ok);
+            background: rgba(237, 248, 242, 0.72);
+            color: var(--ink-check);
+            border: 1px solid rgba(47, 104, 68, 0.34);
         }
 
         .badge.bad {
-            background: var(--bad-bg);
-            color: var(--bad);
+            background: rgba(255, 241, 240, 0.72);
+            color: var(--ink-cross);
+            border: 1px solid rgba(142, 47, 36, 0.34);
         }
 
         .badge.warn {
-            background: var(--warn-bg);
+            background: rgba(255, 247, 232, 0.78);
             color: var(--warn);
+            border: 1px solid rgba(161, 92, 7, 0.34);
         }
 
-        .checks {
+        .card-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .case-detail {
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(199, 170, 122, 0.62);
+        }
+
+        .detail-grid {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 8px;
-            margin: 14px 0 0;
+            gap: 12px;
+        }
+
+        .detail-section {
+            border: 1px solid rgba(199, 170, 122, 0.72);
+            border-radius: 8px;
+            padding: 12px 14px;
+            background: rgba(255, 248, 232, 0.56);
+        }
+
+        .detail-section.bad {
+            border-color: rgba(142, 47, 36, 0.40);
+            background: rgba(255, 241, 240, 0.68);
+        }
+
+        .detail-section.warn {
+            border-color: rgba(161, 92, 7, 0.34);
+            background: rgba(255, 247, 232, 0.74);
+        }
+
+        .detail-section.ok {
+            border-color: rgba(47, 104, 68, 0.34);
+            background: rgba(237, 248, 242, 0.64);
+        }
+
+        .detail-section h3 {
+            margin-bottom: 8px;
+            color: #5A3A24;
+            font-size: 0.94rem;
+        }
+
+        .check-list {
+            display: grid;
+            gap: 7px;
+            margin: 0;
             padding: 0;
             list-style: none;
         }
 
         .check {
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 9px 10px;
-            font-size: 14px;
-            background: #fff;
-        }
-
-        .check.ok {
-            border-color: #b7e2c8;
-            background: var(--ok-bg);
-        }
-
-        .check.bad {
-            border-color: #f2b8b5;
-            background: var(--bad-bg);
-        }
-
-        .check.warn {
-            border-color: #fed7aa;
-            background: var(--warn-bg);
+            display: grid;
+            grid-template-columns: 24px minmax(0, 1fr);
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 650;
         }
 
         .check-mark {
-            display: inline-block;
-            width: 22px;
-            font-weight: 800;
-        }
-
-        .check.ok .check-mark {
-            color: var(--ok);
+            font-weight: 900;
         }
 
         .check.bad .check-mark {
-            color: var(--bad);
+            color: var(--ink-cross);
         }
 
         .check.warn .check-mark {
             color: var(--warn);
         }
 
-        .error-box {
-            margin-top: 16px;
-            padding: 14px 16px;
-            border: 1px solid #fed7aa;
-            border-radius: 8px;
-            background: var(--warn-bg);
-            color: #7c2d12;
+        .check.ok .check-mark {
+            color: var(--ink-check);
         }
 
-        @media (max-width: 760px) {
+        .check strong {
+            color: var(--text-primary);
+            font-weight: 850;
+        }
+
+        .full-checks[hidden],
+        .case-detail[hidden] {
+            display: none;
+        }
+
+        .empty-state,
+        .loading-state,
+        .error-box {
+            padding: 28px 18px;
+            color: var(--text-secondary);
+            text-align: center;
+            font-weight: 800;
+        }
+
+        @media (max-width: 860px) {
             .topbar,
+            .controls,
             .case-header {
-                flex-direction: column;
-                align-items: flex-start;
+                display: block;
             }
 
-            .summary,
-            .checks {
+            .top-actions,
+            .filter-group {
+                justify-content: flex-start;
+                margin-top: 12px;
+            }
+
+            .summary {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .badge {
+                display: inline-flex;
+                margin-top: 12px;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .topbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .page {
+                width: min(100% - 28px, 1180px);
+                padding-top: 22px;
+            }
+
+            .summary {
                 grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <main class="page">
-        <div class="topbar">
-            <div>
-                <h1>CleverGrid 案件数据校验工具</h1>
-                <p class="subtitle">读取 case-index.json 和 cases/*.json，检查案件基础数据是否完整。</p>
-            </div>
-            <a class="home-link" href="../index.html">返回游戏首页</a>
+    <header class="topbar">
+        <div class="brand">
+            <h1>案件校验器</h1>
+            <p class="subtitle">检查案件结构、答案配置和推理数据，发布前先跑这里。</p>
         </div>
+        <nav class="top-actions" aria-label="页面导航">
+            <a class="nav-btn" href="index.html">
+                <span data-lucide="undo" aria-label="返回工具中心"></span>
+                返回工具中心
+            </a>
+        </nav>
+    </header>
 
-        <section class="summary" id="summary"></section>
-        <section class="case-list" id="case-list"></section>
+    <div class="toolbar-strip">CASE VALIDATOR</div>
+
+    <main class="page">
+        <section class="summary" id="summary" aria-label="校验总览"></section>
+
+        <section class="controls" aria-label="筛选案件">
+            <div class="search-wrap">
+                <span class="search-icon" data-lucide="search" aria-hidden="true"></span>
+                <input id="search-input" type="search" placeholder="搜索案件标题 / CASE 编号">
+            </div>
+            <div class="filter-group" aria-label="状态筛选">
+                <button class="filter-btn active" type="button" data-filter="all">全部</button>
+                <button class="filter-btn" type="button" data-filter="bad">异常</button>
+                <button class="filter-btn" type="button" data-filter="warn">提醒</button>
+                <button class="filter-btn" type="button" data-filter="ok">通过</button>
+            </div>
+        </section>
+
+        <section class="case-list" id="case-list" aria-label="案件校验结果">
+            <div class="loading-state">案件校验中...</div>
+        </section>
     </main>
 
     <script src="../src/case-library.js"></script>
+    <script src="../src/lucide-icons.js"></script>
     <script src="../src/solver.js"></script>
     <script src="../src/validator.js"></script>
     <script>
         const { validateCase } = window.CleverGridValidator;
         const formatDifficulty = window.CleverGridCaseLibrary.formatDifficulty;
 
+        const summaryEl = document.getElementById('summary');
+        const caseListEl = document.getElementById('case-list');
+        const searchEl = document.getElementById('search-input');
+        const filterButtons = Array.from(document.querySelectorAll('.filter-btn'));
+
+        let allResults = [];
+        let activeFilter = 'all';
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function hydrateStaticIcons() {
+            if (!window.CleverGridIcons) return;
+
+            document.querySelectorAll('[data-lucide]').forEach(el => {
+                const key = el.getAttribute('data-lucide');
+                const iconName = window.CleverGridIcons.toolIconMap[key] || key;
+                const label = el.getAttribute('aria-label') || '';
+                el.innerHTML = window.CleverGridIcons.render(iconName, { label });
+            });
+        }
+
+        function caseNumber(result) {
+            return `CASE ${String(result.index + 1).padStart(2, '0')}`;
+        }
+
+        function toUserText(message) {
+            return String(message || '')
+                .replaceAll('Solver', '解题器')
+                .replaceAll('case id', '案件编号')
+                .replaceAll('version', '版本')
+                .replaceAll('title', '案件标题')
+                .replaceAll('difficulty', '难度')
+                .replaceAll('suspects', '嫌疑人')
+                .replaceAll('suspect', '嫌疑人')
+                .replaceAll('weapons', '凶器')
+                .replaceAll('weapon', '凶器')
+                .replaceAll('locations', '地点')
+                .replaceAll('location', '地点')
+                .replaceAll('clues', '线索')
+                .replaceAll('clue', '线索')
+                .replaceAll('rules', '线索规则')
+                .replaceAll('rule', '线索规则')
+                .replaceAll('sourceClueId', '线索来源')
+                .replaceAll('left/right', '左右资源')
+                .replaceAll('left', '左侧资源')
+                .replaceAll('right', '右侧资源')
+                .replaceAll('type', '类型')
+                .replaceAll('entity id', '资源编号')
+                .replaceAll('same / notSame', '相同 / 不同')
+                .replaceAll('same', '相同')
+                .replaceAll('notSame', '不同')
+                .replace(/\bID\b/g, '编号')
+                .replace(/\bid\b/gi, '编号')
+                .replaceAll('easy / medium / hard / expert', 'easy / normal / hard');
+        }
+
+        function getStatus(result) {
+            if (!result.ok) return 'bad';
+            if ((result.warnings || []).length) return 'warn';
+            return 'ok';
+        }
+
+        function getStatusLabel(status) {
+            return {
+                bad: '异常',
+                warn: '提醒',
+                ok: '通过'
+            }[status] || '通过';
+        }
+
+        function getFailedChecks(result) {
+            return (result.checks || []).filter(check => !check.ok);
+        }
+
+        function getWarnings(result) {
+            return result.warnings || [];
+        }
+
+        function isAnswerCheck(check) {
+            const text = `${check.label} ${check.detail}`;
+            return /solution|答案|fullTruth|完整真相/.test(text);
+        }
+
+        function isSolverCheck(check) {
+            const text = `${check.label} ${check.detail}`;
+            return /Solver|唯一解|解题器/.test(text);
+        }
+
+        function isRuleCheck(check) {
+            const text = `${check.label} ${check.detail}`;
+            return /rules|rule|线索规则|sourceClueId|left|right|type/.test(text);
+        }
+
+        function getKeySummary(result) {
+            const checks = result.checks || [];
+            const failed = getFailedChecks(result);
+            const structureOk = !failed.some(check => !isAnswerCheck(check) && !isSolverCheck(check));
+            const answerOk = !failed.some(isAnswerCheck);
+            const solverOk = result.solver && result.solver.status === 'unique' && result.solver.matchesFullTruth !== false;
+
+            return [
+                {
+                    ok: structureOk,
+                    label: structureOk ? '案件结构检查通过' : '案件结构存在异常',
+                    detail: `资源：嫌疑人 ${result.counts.suspects} / 凶器 ${result.counts.weapons} / 地点 ${result.counts.locations} / 线索 ${result.counts.clues}`
+                },
+                {
+                    ok: answerOk,
+                    label: answerOk ? '答案配置检查通过' : '答案配置存在异常',
+                    detail: answerOk ? '答案配置与完整真相配置可对应。' : '请查看异常项中的答案配置提示。'
+                },
+                {
+                    ok: solverOk,
+                    label: solverOk ? '唯一解检查通过' : '唯一解检查需要复查',
+                    detail: toUserText(result.solver && result.solver.detail ? result.solver.detail : '等待校验结果。')
+                }
+            ];
+        }
+
         function renderSummary(results) {
             const total = results.length;
-            const passed = results.filter(result => result.ok).length;
-            const failed = total - passed;
-            const failedChecks = results.reduce((sum, result) => sum + result.checks.filter(check => !check.ok).length, 0);
-            const warnings = results.reduce((sum, result) => sum + (result.warnings || []).length, 0);
+            const passed = results.filter(result => getStatus(result) === 'ok').length;
+            const failed = results.filter(result => getStatus(result) === 'bad').length;
+            const warnings = results.reduce((sum, result) => sum + getWarnings(result).length, 0);
 
-            document.getElementById('summary').innerHTML = [
+            summaryEl.innerHTML = [
                 ['案件总数', total, ''],
                 ['通过案件', passed, 'ok'],
-                ['失败案件', failed, failed > 0 ? 'bad' : 'ok'],
-                ['失败检查项', failedChecks, failedChecks > 0 ? 'bad' : 'ok'],
-                ['提醒', warnings, warnings > 0 ? 'warn' : 'ok']
+                ['异常案件', failed, failed > 0 ? 'bad' : 'ok'],
+                ['提醒项', warnings, warnings > 0 ? 'warn' : 'ok']
             ].map(([label, value, state]) => `
                 <div class="summary-card">
                     <div class="summary-label">${label}</div>
@@ -277,47 +676,154 @@
             `).join('');
         }
 
-        function renderCases(results) {
-            document.getElementById('case-list').innerHTML = results.map(result => `
-                <article class="case-card">
-                    <div class="case-header">
-                        <div>
-                            <h2 class="case-title">CASE ${String(result.index + 1).padStart(2, '0')}：${result.title}</h2>
-                            <div class="case-meta">
-                                难度：${formatDifficulty(result.difficulty)} · 嫌疑人 ${result.counts.suspects} · 凶器 ${result.counts.weapons} · 地点 ${result.counts.locations} · 线索 ${result.counts.clues} · Rules ${result.counts.rules}
-                            </div>
-                            <div class="case-meta">
-                                Solver：${result.solver.detail} · 解样例 ${result.solver.solutionCount} · ${result.solver.status === 'unique' ? (result.solver.matchesFullTruth ? '匹配 fullTruth' : '不匹配 fullTruth') : '未进行 fullTruth 对比'}
-                            </div>
-                        </div>
-                        <div class="badge ${result.ok ? ((result.warnings || []).length ? 'warn' : 'ok') : 'bad'}">${result.ok ? ((result.warnings || []).length ? '通过，有提醒' : '通过') : '有问题'}</div>
-                    </div>
-                    <ul class="checks">
-                        ${(result.warnings || []).map(warning => `
-                            <li class="check warn">
-                                <span class="check-mark">!</span>
-                                <strong>${warning.label}</strong>
-                                <div>${warning.detail}</div>
-                            </li>
-                        `).join('')}
-                        ${result.checks.map(check => `
+        function filteredResults() {
+            const query = searchEl.value.trim().toLowerCase();
+
+            return allResults.filter(result => {
+                const status = getStatus(result);
+                const matchesStatus = activeFilter === 'all' || status === activeFilter;
+                const searchable = `${caseNumber(result)} ${result.title}`.toLowerCase();
+                const matchesQuery = !query || searchable.includes(query);
+                return matchesStatus && matchesQuery;
+            });
+        }
+
+        function sortResults(results) {
+            const priority = { bad: 0, warn: 1, ok: 2 };
+            return results.slice().sort((left, right) => {
+                const statusDiff = priority[getStatus(left)] - priority[getStatus(right)];
+                return statusDiff || left.index - right.index;
+            });
+        }
+
+        function renderCheckList(items, type) {
+            if (!items.length) return '<p class="case-meta">暂无。</p>';
+
+            return `
+                <ul class="check-list">
+                    ${items.map(item => `
+                        <li class="check ${type}">
+                            <span class="check-mark">${type === 'bad' ? '×' : (type === 'warn' ? '!' : '✓')}</span>
+                            <span>
+                                <strong>${escapeHtml(toUserText(item.label))}</strong>
+                                <span>${escapeHtml(toUserText(item.detail))}</span>
+                            </span>
+                        </li>
+                    `).join('')}
+                </ul>
+            `;
+        }
+
+        function renderKeySummary(result) {
+            return `
+                <ul class="check-list">
+                    ${getKeySummary(result).map(item => `
+                        <li class="check ${item.ok ? 'ok' : 'bad'}">
+                            <span class="check-mark">${item.ok ? '✓' : '×'}</span>
+                            <span>
+                                <strong>${escapeHtml(item.label)}</strong>
+                                <span>${escapeHtml(item.detail)}</span>
+                            </span>
+                        </li>
+                    `).join('')}
+                </ul>
+            `;
+        }
+
+        function renderFullChecks(result) {
+            return `
+                <div class="detail-section full-checks" id="full-${result.index}" hidden>
+                    <h3>完整检查项</h3>
+                    <ul class="check-list">
+                        ${(result.checks || []).map(check => `
                             <li class="check ${check.ok ? 'ok' : 'bad'}">
                                 <span class="check-mark">${check.ok ? '✓' : '×'}</span>
-                                <strong>${check.label}</strong>
-                                <div>${check.detail}</div>
+                                <span>
+                                    <strong>${escapeHtml(toUserText(check.label))}</strong>
+                                    <span>${escapeHtml(toUserText(check.detail))}</span>
+                                </span>
                             </li>
                         `).join('')}
                     </ul>
+                </div>
+            `;
+        }
+
+        function renderCaseCard(result) {
+            const status = getStatus(result);
+            const failedChecks = getFailedChecks(result);
+            const warnings = getWarnings(result);
+            const passedChecks = (result.checks || []).filter(check => check.ok).length;
+            const failedCount = failedChecks.length;
+            const warningCount = warnings.length;
+
+            return `
+                <article class="case-card ${status}" data-status="${status}" data-case="${escapeHtml(caseNumber(result).toLowerCase())}" data-title="${escapeHtml(result.title.toLowerCase())}">
+                    <div class="case-header">
+                        <div>
+                            <div class="case-title-row">
+                                <span class="case-number">${escapeHtml(caseNumber(result))}</span>
+                                <h2 class="case-title">${escapeHtml(result.title)}</h2>
+                            </div>
+                            <div class="case-meta">
+                                <span>状态：${getStatusLabel(status)}</span>
+                                <span>难度：${escapeHtml(formatDifficulty(result.difficulty))}</span>
+                                <span>线索：${escapeHtml(result.counts.clues)}</span>
+                            </div>
+                            <div class="case-check-counts">
+                                <span>检查项：通过 ${passedChecks}</span>
+                                <span>异常 ${failedCount}</span>
+                                <span>提醒 ${warningCount}</span>
+                            </div>
+                        </div>
+                        <span class="badge ${status}">${getStatusLabel(status)}</span>
+                    </div>
+
+                    <div class="card-actions">
+                        <button class="card-action detail-toggle" type="button" data-index="${result.index}">查看详情</button>
+                    </div>
+
+                    <div class="case-detail" id="detail-${result.index}" hidden>
+                        <div class="detail-grid">
+                            <section class="detail-section bad">
+                                <h3>异常项</h3>
+                                ${renderCheckList(failedChecks, 'bad')}
+                            </section>
+                            <section class="detail-section warn">
+                                <h3>提醒项</h3>
+                                ${renderCheckList(warnings, 'warn')}
+                            </section>
+                            <section class="detail-section ok">
+                                <h3>关键摘要</h3>
+                                ${renderKeySummary(result)}
+                            </section>
+                            ${renderFullChecks(result)}
+                        </div>
+                        <div class="card-actions">
+                            <button class="card-action full-toggle" type="button" data-index="${result.index}">显示全部检查项</button>
+                        </div>
+                    </div>
                 </article>
-            `).join('');
+            `;
+        }
+
+        function renderCases() {
+            const results = sortResults(filteredResults());
+
+            if (!results.length) {
+                caseListEl.innerHTML = '<div class="empty-state">暂无符合条件的案件</div>';
+                return;
+            }
+
+            caseListEl.innerHTML = results.map(renderCaseCard).join('');
         }
 
         function renderLoadError(message) {
-            document.getElementById('summary').innerHTML = '';
-            document.getElementById('case-list').innerHTML = `
+            summaryEl.innerHTML = '';
+            caseListEl.innerHTML = `
                 <div class="error-box">
                     <strong>无法校验案件数据</strong>
-                    <div>${message}</div>
+                    <div>${escapeHtml(message)}</div>
                 </div>
             `;
         }
@@ -328,10 +834,41 @@
                 return;
             }
 
-            const results = data.map(validateCase);
-            renderSummary(results);
-            renderCases(results);
+            allResults = data.map(validateCase);
+            renderSummary(allResults);
+            renderCases();
         }
+
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                activeFilter = button.dataset.filter;
+                filterButtons.forEach(item => item.classList.toggle('active', item === button));
+                renderCases();
+            });
+        });
+
+        searchEl.addEventListener('input', renderCases);
+
+        caseListEl.addEventListener('click', event => {
+            const detailButton = event.target.closest('.detail-toggle');
+            if (detailButton) {
+                const detailEl = document.getElementById(`detail-${detailButton.dataset.index}`);
+                const isHidden = detailEl.hidden;
+                detailEl.hidden = !isHidden;
+                detailButton.textContent = isHidden ? '收起详情' : '查看详情';
+                return;
+            }
+
+            const fullButton = event.target.closest('.full-toggle');
+            if (fullButton) {
+                const fullEl = document.getElementById(`full-${fullButton.dataset.index}`);
+                const isHidden = fullEl.hidden;
+                fullEl.hidden = !isHidden;
+                fullButton.textContent = isHidden ? '收起全部检查项' : '显示全部检查项';
+            }
+        });
+
+        hydrateStaticIcons();
 
         window.CleverGridCaseLibrary.loadCases({ indexPath: '../case-index.json' })
             .then(({ cases }) => {
@@ -339,7 +876,7 @@
             })
             .catch(error => {
                 console.error(error);
-                renderLoadError('案件库读取失败。请确认 case-index.json 和 cases/*.json 是否一致。');
+                renderLoadError('案件库读取失败。请确认 case-index 和 cases/*.json 是否一致。');
             });
     </script>
 </body>
