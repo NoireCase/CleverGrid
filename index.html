@@ -22,7 +22,7 @@
                     <div class="tooltip-text">
                         <strong>玩法说明：</strong><br>
                         1. <strong>排除法</strong>：利用线索在网格中推理。<br>
-                        2. <strong>钢笔(✒️)</strong>：记录铁证 (<span style="color:var(--ink-cross)">×</span>排除, <span style="color:var(--ink-check)">✓</span>确认)。<br>
+                        2. <strong>钢笔工具</strong>：记录铁证 (<span style="color:var(--ink-cross)">×</span>排除, <span style="color:var(--ink-check)">✓</span>确认)。<br>
                         3. <strong>拼凑真相</strong>：将左侧卡片拖入底部插槽。<br>
                         4. <strong>提交</strong>：只有推理出完整的嫌疑人、凶器和地点，才能结案。
                     </div>
@@ -39,40 +39,40 @@
     <div class="toolbar-container">
         <div class="tool-group">
             <div class="tool-btn active" id="tool-pen" onclick="game.setTool('pen')" role="button" aria-label="排除 / 标记" title="排除 / 标记">
-                ✒️<div class="tool-tooltip">排除 / 标记</div>
+                <span class="toolbar-icon" data-lucide="pen" aria-label="排除 / 标记"></span><div class="tool-tooltip">排除 / 标记</div>
             </div>
             <div class="tool-btn" id="tool-pencil" onclick="game.setTool('pencil')" role="button" aria-label="标记" title="标记">
-                ✏️<div class="tool-tooltip">标记</div>
+                <span class="toolbar-icon" data-lucide="pencil" aria-label="标记"></span><div class="tool-tooltip">标记</div>
             </div>
             <div class="tool-btn" id="tool-eraser" onclick="game.setTool('eraser')" role="button" aria-label="清除" title="清除">
-                🧹<div class="tool-tooltip">清除</div>
+                <span class="toolbar-icon" data-lucide="eraser" aria-label="清除"></span><div class="tool-tooltip">清除</div>
             </div>
         </div>
         <div class="tool-group">
             <div class="tool-btn" onclick="game.undo()" role="button" aria-label="撤销" title="撤销">
-                ↩️<div class="tool-tooltip">撤销</div>
+                <span class="toolbar-icon" data-lucide="undo" aria-label="撤销"></span><div class="tool-tooltip">撤销</div>
             </div>
             <div class="tool-btn" onclick="game.redo()" role="button" aria-label="重做" title="重做">
-                ↪️<div class="tool-tooltip">重做</div>
+                <span class="toolbar-icon" data-lucide="redo" aria-label="重做"></span><div class="tool-tooltip">重做</div>
             </div>
         </div>
         <div class="tool-group">
             <div class="tool-btn" onclick="game.saveSnapshot()" role="button" aria-label="暂存推理表" title="暂存推理表">
-                📥<div class="tool-tooltip">暂存推理表</div>
+                <span class="toolbar-icon" data-lucide="save" aria-label="暂存推理表"></span><div class="tool-tooltip">暂存推理表</div>
             </div>
             <div class="tool-btn" id="btn-load-snap" onclick="game.loadSnapshot()" role="button" aria-label="读取暂存" title="读取暂存" disabled>
-                📤<div class="tool-tooltip">读取暂存</div>
+                <span class="toolbar-icon" data-lucide="load" aria-label="读取暂存"></span><div class="tool-tooltip">读取暂存</div>
             </div>
         </div>
         <div class="tool-group">
             <div class="tool-btn" onclick="game.toggleSmartMode()" role="button" aria-label="自动推理" title="自动推理">
-                🧠<div id="smart-indicator"></div>
+                <span class="toolbar-icon" data-lucide="auto" aria-label="自动推理"></span><div id="smart-indicator"></div>
                 <div class="tool-tooltip">自动推理</div>
             </div>
         </div>
         <div class="tool-group" style="border:none;">
             <div class="tool-btn" style="color: var(--ink-cross);" onclick="game.resetLevel()" role="button" aria-label="清空推理表" title="清空推理表">
-                🗑️<div class="tool-tooltip">清空推理表</div>
+                <span class="toolbar-icon" data-lucide="trash" aria-label="清空推理表"></span><div class="tool-tooltip">清空推理表</div>
             </div>
         </div>
     </div>
@@ -101,22 +101,29 @@
             </section>
 
             <section id="truth-zone">
-                <div class="truth-label">🕵️ 结案陈词：将真相卡片拖入下方</div>
+                <div class="truth-label">结案陈词：将真相卡片拖入下方</div>
                 <div class="slot-container">
-                    <div class="truth-slot" id="slot-suspect" data-type="suspect">
-                        <span>👤 拖入凶手</span>
+                    <div class="truth-field">
+                        <div class="truth-field-label">凶手</div>
+                        <div class="truth-slot" id="slot-suspect" data-type="suspect">
+                            <span>拖入凶手</span>
+                        </div>
                     </div>
-                    <div style="font-weight:bold; color:var(--text-disabled)">+</div>
-                    <div class="truth-slot" id="slot-weapon" data-type="weapon">
-                        <span>🔪 拖入凶器</span>
+                    <div class="truth-field">
+                        <div class="truth-field-label">凶器</div>
+                        <div class="truth-slot" id="slot-weapon" data-type="weapon">
+                            <span>拖入凶器</span>
+                        </div>
                     </div>
-                    <div style="font-weight:bold; color:var(--text-disabled)">@</div>
-                    <div class="truth-slot" id="slot-location" data-type="location">
-                        <span>📍 拖入地点</span>
+                    <div class="truth-field">
+                        <div class="truth-field-label">地点</div>
+                        <div class="truth-slot" id="slot-location" data-type="location">
+                            <span>拖入地点</span>
+                        </div>
                     </div>
 
                     <button class="submit-btn" id="btn-submit" onclick="game.submitTruth()" disabled>
-                        <span>📝 提交结案</span>
+                        <span>提交结案</span>
                     </button>
                 </div>
             </section>
@@ -170,6 +177,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <script src="src/case-library.js"></script>
+<script src="src/lucide-icons.js"></script>
 <script src="src/app.js"></script>
 <script>
     window.CleverGridCaseLibrary.loadCases({ indexPath: 'case-index.json' })
